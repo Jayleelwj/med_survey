@@ -1,0 +1,317 @@
+{
+  "figures": [
+    {
+      "figure_number": 1,
+      "stem": "fig01_survey_map",
+      "title": "Evidence-centered survey map for artificial intelligence in MS MRI",
+      "panels": [
+        "MS imaging substrate",
+        "orthogonal AI design dimensions",
+        "evidence maturity"
+      ],
+      "alt_text": "Technical scientific plate titled 'Evidence-centered survey map for artificial intelligence in MS MRI' with panels covering MS imaging substrate, orthogonal AI design dimensions, evidence maturity.",
+      "caption_notes": [
+        "Synthetic MRI anchors MS lesions, susceptibility-sensitive imaging, and cervical-cord analysis without patient data.",
+        "Data provenance, representation, and learning mechanism are orthogonal design dimensions; no row pairing or performance rank is implied.",
+        "Evidence maturity proceeds from internal testing to patient net benefit and is independent of architecture family.",
+        "All labels, callouts, connectors, and evidence glyphs are vector objects."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": true,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "Synthetic MRI anchors MS lesions, susceptibility-sensitive imaging, and cervical-cord analysis without patient data.",
+        "Data provenance, representation, and learning mechanism are orthogonal design dimensions; no row pairing or performance rank is implied.",
+        "Evidence maturity proceeds from internal testing to patient net benefit and is independent of architecture family.",
+        "All labels, callouts, connectors, and evidence glyphs are vector objects."
+      ]
+    },
+    {
+      "figure_number": 2,
+      "stem": "fig02_mri_inputs",
+      "title": "MRI contrasts and data representations used by AI for MS",
+      "panels": [
+        "registered MRI contrasts",
+        "2-D/2.5-D/3-D/multisequence inputs",
+        "preprocessing choices and domain variables"
+      ],
+      "alt_text": "Technical scientific plate titled 'MRI contrasts and data representations used by AI for MS' with panels covering registered MRI contrasts, 2-D/2.5-D/3-D/multisequence inputs, preprocessing choices and domain variables.",
+      "caption_notes": [
+        "T1-weighted MRI is labeled for anatomy/atrophy rather than as a lesion-specific sequence.",
+        "Susceptibility imaging is described only as supplying susceptibility-related cues.",
+        "The first four brain contrasts depict one synthetic registered case; specialized susceptibility and cord acquisitions are grouped separately.",
+        "Preprocessing modules are optional prespecified choices and are not drawn as a universal rigid order.",
+        "MRI, volume, and domain subjects are raster assets; all labels, brackets, callouts, and grouping marks are vectors."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": true,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "T1-weighted MRI is labeled for anatomy/atrophy rather than as a lesion-specific sequence.",
+        "Susceptibility imaging is described only as supplying susceptibility-related cues.",
+        "The first four brain contrasts depict one synthetic registered case; specialized susceptibility and cord acquisitions are grouped separately.",
+        "Preprocessing modules are optional prespecified choices and are not drawn as a universal rigid order.",
+        "MRI, volume, and domain subjects are raster assets; all labels, brackets, callouts, and grouping marks are vectors."
+      ]
+    },
+    {
+      "figure_number": 3,
+      "stem": "fig03_data_realism",
+      "title": "Patient-level splitting and multireader reference construction",
+      "panels": [
+        "patient-by-visit partition",
+        "visit-level leakage",
+        "multireader consensus and adjudication"
+      ],
+      "alt_text": "Technical scientific plate titled 'Patient-level splitting and multireader reference construction' with panels covering patient-by-visit partition, visit-level leakage, multireader consensus and adjudication.",
+      "caption_notes": [
+        "All visits from an illustrative patient remain in a single train, validation, or test partition.",
+        "The leakage panel identifies shared patient identity across train and test visits and reports no performance values.",
+        "Reader contours, consensus fill, adjudication marker, labels, brackets, and partition encodings are vector objects.",
+        "Illustrative patient rows and synthetic images do not encode cohort size, prevalence, or empirical agreement."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": true,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "All visits from an illustrative patient remain in a single train, validation, or test partition.",
+        "The leakage panel identifies shared patient identity across train and test visits and reports no performance values.",
+        "Reader contours, consensus fill, adjudication marker, labels, brackets, and partition encodings are vector objects.",
+        "Illustrative patient rows and synthetic images do not encode cohort size, prevalence, or empirical agreement."
+      ]
+    },
+    {
+      "figure_number": 4,
+      "stem": "fig04_unet_3d_residual",
+      "title": "U-Net families: dimensionality, skip fusion, and residual learning",
+      "panels": [
+        "U-Net",
+        "3D U-Net",
+        "Residual U-Net"
+      ],
+      "alt_text": "Technical scientific plate titled 'U-Net families: dimensionality, skip fusion, and residual learning' with panels covering U-Net, 3D U-Net, Residual U-Net.",
+      "caption_notes": [
+        "Every encoder transition has an explicit downsample and every decoder transition an explicit upsample.",
+        "Each long-skip C node receives a matching-resolution encoder feature and an upsampled decoder feature before decoder convolution.",
+        "The 3D panel labels volumetric input, 3-D operations, and a 3-D mask.",
+        "The residual magnifier separates short element-wise Add from long channel Concat and conditionally uses projection only for shape mismatch."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": true,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "Every encoder transition has an explicit downsample and every decoder transition an explicit upsample.",
+        "Each long-skip C node receives a matching-resolution encoder feature and an upsampled decoder feature before decoder convolution.",
+        "The 3D panel labels volumetric input, 3-D operations, and a 3-D mask.",
+        "The residual magnifier separates short element-wise Add from long channel Concat and conditionally uses projection only for shape mismatch."
+      ]
+    },
+    {
+      "figure_number": 5,
+      "stem": "fig05_dense_attention_nnunet",
+      "title": "Dense, attention-gated, and self-configuring U-Net mechanisms",
+      "panels": [
+        "Dense U-Net",
+        "Attention U-Net",
+        "nnU-Net"
+      ],
+      "alt_text": "Technical scientific plate titled 'Dense, attention-gated, and self-configuring U-Net mechanisms' with panels covering Dense U-Net, Attention U-Net, nnU-Net.",
+      "caption_notes": [
+        "Every dense-layer Concat has all preceding feature operands, an output into H_l, and a labeled x_l output.",
+        "The attention gate shows aligned encoder and gating projections, additive coefficient estimation, multiplication of alpha with x_l, then Concat with the decoder stream.",
+        "nnU-Net is represented as fingerprinting, planning, applied preprocessing, feasible candidate evaluation, validation-based selection, optional validated postprocessing, and locked inference.",
+        "The cascade candidate explicitly passes an upsampled low-resolution segmentation to a full-resolution model; the unseen test set provides no feedback."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": true,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "Every dense-layer Concat has all preceding feature operands, an output into H_l, and a labeled x_l output.",
+        "The attention gate shows aligned encoder and gating projections, additive coefficient estimation, multiplication of alpha with x_l, then Concat with the decoder stream.",
+        "nnU-Net is represented as fingerprinting, planning, applied preprocessing, feasible candidate evaluation, validation-based selection, optional validated postprocessing, and locked inference.",
+        "The cascade candidate explicitly passes an upsampled low-resolution segmentation to a full-resolution model; the unseen test set provides no feedback."
+      ]
+    },
+    {
+      "figure_number": 6,
+      "stem": "fig06_vit_swin",
+      "title": "Transformer mechanisms for MRI representation and segmentation",
+      "panels": [
+        "Vision Transformer",
+        "Swin Transformer"
+      ],
+      "alt_text": "Technical scientific plate titled 'Transformer mechanisms for MRI representation and segmentation' with panels covering Vision Transformer, Swin Transformer.",
+      "caption_notes": [
+        "ViT explicitly adds positional embeddings to projected patch tokens and uses two pre-LN residual Add operations per block.",
+        "The ViT panel distinguishes a token encoder from its task-specific head or dense decoder.",
+        "Swin alternates W-MSA and SW-MSA within a stage; shifted windows show a half-window cyclic shift and masked wrap regions.",
+        "Patch Merging appears between stages and groups neighboring tokens before concatenation and linear projection."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": true,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "ViT explicitly adds positional embeddings to projected patch tokens and uses two pre-LN residual Add operations per block.",
+        "The ViT panel distinguishes a token encoder from its task-specific head or dense decoder.",
+        "Swin alternates W-MSA and SW-MSA within a stage; shifted windows show a half-window cyclic shift and masked wrap regions.",
+        "Patch Merging appears between stages and groups neighboring tokens before concatenation and linear projection."
+      ]
+    },
+    {
+      "figure_number": 7,
+      "stem": "fig07_unetr_transunet",
+      "title": "Transformer–decoder integration patterns in 3-D and hybrid segmentation",
+      "panels": [
+        "UNETR",
+        "TransUNet"
+      ],
+      "alt_text": "Technical scientific plate titled 'Transformer–decoder integration patterns in 3-D and hybrid segmentation' with panels covering UNETR, TransUNet.",
+      "caption_notes": [
+        "UNETR accepts a 3-D volume, tokenizes nonoverlapping 3-D patches, and sends z12, z9, z6, z3, and a shallow CNN stem to progressively finer decoder stages.",
+        "Every UNETR hidden-state skip is explicitly reshaped, projected, and upsampled as required before channel Concat.",
+        "The TransUNet panel computes four scales of local CNN features before tokenizing the deepest feature and adding positional embeddings.",
+        "TransUNet decodes reshaped Transformer context through three explicit fusion stages with retained higher-resolution CNN skips."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": true,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "UNETR accepts a 3-D volume, tokenizes nonoverlapping 3-D patches, and sends z12, z9, z6, z3, and a shallow CNN stem to progressively finer decoder stages.",
+        "Every UNETR hidden-state skip is explicitly reshaped, projected, and upsampled as required before channel Concat.",
+        "The TransUNet panel computes four scales of local CNN features before tokenizing the deepest feature and adding positional embeddings.",
+        "TransUNet decodes reshaped Transformer context through three explicit fusion stages with retained higher-resolution CNN skips."
+      ]
+    },
+    {
+      "figure_number": 8,
+      "stem": "fig08_emerging_models",
+      "title": "Measurement-constrained, generative, state-space, and longitudinal architectures",
+      "panels": [
+        "deep unfolding",
+        "VAE/GAN/diffusion",
+        "selective state-space model",
+        "registered longitudinal model"
+      ],
+      "alt_text": "Technical scientific plate titled 'Measurement-constrained, generative, state-space, and longitudinal architectures' with panels covering deep unfolding, VAE/GAN/diffusion, selective state-space model, registered longitudinal model.",
+      "caption_notes": [
+        "Measured k-space is first mapped to x0 by an adjoint or zero-filled initialization and supplies every data-consistency operator, never a learned prior directly.",
+        "The VAE includes x, encoder, mu/log-variance, reparameterization, decoder, x-hat, reconstruction, and KL dependencies.",
+        "The GAN discriminator receives real and generated images; diffusion separates forward noising from iterative conditioned reverse sampling.",
+        "The selective SSM declares scan order, input-dependent Delta/B/C, discretization, recurrent state, and output-token equation without claiming a fixed Mamba implementation.",
+        "Longitudinal registration receives baseline and follow-up, produces an aligned follow-up, and feeds shared-weight encoders before separate change-map and post-index risk heads."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": true,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "Measured k-space is first mapped to x0 by an adjoint or zero-filled initialization and supplies every data-consistency operator, never a learned prior directly.",
+        "The VAE includes x, encoder, mu/log-variance, reparameterization, decoder, x-hat, reconstruction, and KL dependencies.",
+        "The GAN discriminator receives real and generated images; diffusion separates forward noising from iterative conditioned reverse sampling.",
+        "The selective SSM declares scan order, input-dependent Delta/B/C, discretization, recurrent state, and output-token equation without claiming a fixed Mamba implementation.",
+        "Longitudinal registration receives baseline and follow-up, produces an aligned follow-up, and feeds shared-weight encoders before separate change-map and post-index risk heads."
+      ]
+    },
+    {
+      "figure_number": 9,
+      "stem": "fig09_error_loss_mapping",
+      "title": "Lesion-level errors require distinct objectives and metric bundles",
+      "panels": [
+        "small-lesion miss",
+        "false positive",
+        "boundary shift",
+        "volume bias"
+      ],
+      "alt_text": "Technical scientific plate titled 'Lesion-level errors require distinct objectives and metric bundles' with panels covering small-lesion miss, false positive, boundary shift, volume bias.",
+      "caption_notes": [
+        "Synthetic FLAIR crops carry separate reference and prediction contours.",
+        "Each error phenotype maps to a compatible loss emphasis and complementary metric bundle.",
+        "No empirical values, rankings, or simulated performance curves are shown."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": true,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "Synthetic FLAIR crops carry separate reference and prediction contours.",
+        "Each error phenotype maps to a compatible loss emphasis and complementary metric bundle.",
+        "No empirical values, rankings, or simulated performance curves are shown."
+      ]
+    },
+    {
+      "figure_number": 10,
+      "stem": "fig10_evaluation_frameworks",
+      "title": "Evaluation logic from leakage control to governed clinical use",
+      "panels": [
+        "leakage-resistant design",
+        "segmentation operators",
+        "diagnostic and prognostic claims",
+        "aggregation and uncertainty",
+        "clinical evaluation and governance"
+      ],
+      "alt_text": "Technical scientific plate titled 'Evaluation logic from leakage control to governed clinical use' with panels covering leakage-resistant design, segmentation operators, diagnostic and prognostic claims, aggregation and uncertainty, clinical evaluation and governance.",
+      "caption_notes": [
+        "The plate contains no axes, plot marks, curves, bars, or empirical values.",
+        "Patient-level splitting precedes locked external and protocol-stress evaluation.",
+        "Metric bundles are separated from evidence level and bounded clinical action.",
+        "The evidence ladder runs from internal testing to patient net benefit."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": false,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "The plate contains no axes, plot marks, curves, bars, or empirical values.",
+        "Patient-level splitting precedes locked external and protocol-stress evaluation.",
+        "Metric bundles are separated from evidence level and bounded clinical action.",
+        "The evidence ladder runs from internal testing to patient net benefit."
+      ]
+    },
+    {
+      "figure_number": 11,
+      "stem": "fig11_validation_roadmap",
+      "title": "Domain variability should drive validation priorities and deployment safeguards",
+      "panels": [
+        "domain variability",
+        "robustness lane",
+        "trust lane",
+        "translation lane"
+      ],
+      "alt_text": "Technical scientific plate titled 'Domain variability should drive validation priorities and deployment safeguards' with panels covering domain variability, robustness lane, trust lane, translation lane.",
+      "caption_notes": [
+        "Synthetic MRI tiles illustrate acquisition domains rather than patient outcomes.",
+        "Three validation lanes separate robustness, trust, and clinical translation priorities.",
+        "Arrows progress from observed variability to locked evaluation and monitored deployment.",
+        "No performance values or regulatory claims are shown."
+      ],
+      "width_in": 7.16,
+      "png_dpi": 600,
+      "pdf_vector_text_and_paths": true,
+      "contains_intentional_synthetic_raster": true,
+      "schematic_curves_not_empirical": false,
+      "content_assertions": [
+        "Synthetic MRI tiles illustrate acquisition domains rather than patient outcomes.",
+        "Three validation lanes separate robustness, trust, and clinical translation priorities.",
+        "Arrows progress from observed variability to locked evaluation and monitored deployment.",
+        "No performance values or regulatory claims are shown."
+      ]
+    }
+  ]
+}

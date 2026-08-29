@@ -1,0 +1,26 @@
+.DS_Store
+Thumbs.db
+__pycache__/
+*.py[cod]
+
+# Local render and inspection artifacts
+tmp/
+
+# Superseded drafts and generated bundles
+archive/
+output/ai_med_survey_v1/
+output/*.zip
+
+# Legacy image-generation iterations; the final build uses imagegen_ieee_v3
+assets/ieee_base/
+assets/imagegen_ieee_v2/
+assets/imagegen_redesign/
+
+# Reproducible LaTeX intermediates and duplicate embedded figures
+output/ieee_source/figures/
+output/ieee_source/main.aux
+output/ieee_source/main.fdb_latexmk
+output/ieee_source/main.fls
+output/ieee_source/main.log
+output/ieee_source/main.out
+output/ieee_source/main.pdf

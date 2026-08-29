@@ -1,0 +1,700 @@
+\documentclass[journal,twoside,web]{ieeecolor}
+\usepackage{generic}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,array}
+\usepackage{placeins}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{url}
+\usepackage{hyperref}
+\pdfstringdefDisableCommands{\def\thanks#1{}\def\textsuperscript#1{#1}}
+\hypersetup{
+  hidelinks,
+  pdftitle={A Survey of Artificial Intelligence in Multiple Sclerosis MRI: Datasets, Deep Learning Methods, Challenges, and Future Directions},
+  pdfauthor={[Author 1, degree]1; [Author 2, degree]2; [Author 3, degree]1},
+  pdfsubject={AI-assisted survey draft on artificial intelligence in multiple sclerosis MRI},
+  pdfkeywords={Artificial intelligence, deep learning, magnetic resonance imaging, multiple sclerosis}
+}
+\newcolumntype{Y}{>{\raggedright\arraybackslash\hspace{0pt}}X}
+\newcolumntype{Z}{>{\raggedright\arraybackslash\hspace{0pt}}X}
+\providecommand{\refname}{References}
+\emergencystretch=2em
+\Urlmuskip=0mu plus 1mu
+\makeatletter
+\def\ps@headings{%
+  \def\@oddhead{\scriptsize\rightmark\hfil\thepage}%
+  \def\@evenhead{\scriptsize\thepage\hfil\leftmark}%
+  \def\@oddfoot{}\def\@evenfoot{}}
+\def\ps@titlepagestyle{%
+  \def\@oddhead{\scriptsize AI-ASSISTED RESEARCH DRAFT\hfil\thepage}%
+  \def\@evenhead{\scriptsize\thepage\hfil AI-ASSISTED RESEARCH DRAFT}%
+  \def\@oddfoot{}\def\@evenfoot{}}
+\makeatother
+\markboth{AI-ASSISTED RESEARCH DRAFT}{Author et al.: MS MRI AI Survey}
+
+\begin{document}
+\title{A Survey of Artificial Intelligence in Multiple Sclerosis MRI: Datasets, Deep Learning Methods, Challenges, and Future Directions}
+\author{[Author 1, degree]\textsuperscript{1}; [Author 2, degree]\textsuperscript{2}; [Author 3, degree]\textsuperscript{1}
+\thanks{$^{1}$[Department, Institution, City, Country]; $^{2}$[Department, Institution, City, Country]}
+\thanks{ORCID: [Author 1: 0000-0000-0000-0000]; [Author 2: 0000-0000-0000-0000]}
+\thanks{Corresponding author: [Name, postal address, e-mail, telephone]}
+\thanks{AI-assisted research draft---not submission-ready.}}
+\maketitle
+\pagestyle{headings}
+
+\begin{abstract}
+Magnetic resonance imaging (MRI) is central to multiple sclerosis (MS) diagnosis and monitoring, but manual interpretation is time-consuming and poorly suited to reproducible lesion quantification, multimodal integration, and longitudinal comparison. This survey evaluates artificial intelligence for MS MRI through a connected chain of data realism, architectural mechanism, clinical task, measurement, evidence quality, and translation. Public challenges have enabled reproducible white-matter and new-lesion segmentation, yet remain small, brain-centered, and incompletely representative of routine practice. Convolutional encoder--decoders provide an established technical foundation, while nnU-Net supplies a reproducible configuration baseline rather than clinical validity. Vision Transformer, Swin Transformer, UNETR, and CNN--Transformer hybrids expand global modeling but require more data and computation, whereas generative, state-space, self-supervised, and foundation models remain less clinically established. Training objectives must reflect the target error: overlap losses address imbalance, boundary-aware objectives refine geometry, reconstruction objectives preserve image fidelity, and survival losses accommodate censoring. Across tasks, high internal Dice or area under the curve does not establish transportability because scanner shift, label uncertainty, patient leakage, spectrum bias, absent calibration, and weak external validation remain common. Lesion segmentation, quantitative analysis, and longitudinal change detection are closest to assistive clinical use; autonomous diagnosis and individual prognosis are not. Progress now depends on multicenter prospective evaluation, pathology-preserving generation, calibrated uncertainty, equitable data governance, workflow-aware endpoints, and monitored human--AI deployment.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Artificial intelligence, deep learning, magnetic resonance imaging, multiple sclerosis
+\end{IEEEkeywords}
+
+\section{Introduction}\label{sec:introduction}
+
+Multiple sclerosis is a chronic inflammatory and neurodegenerative disorder with marked variation in lesion location, relapse activity, tissue loss, cognition, and disability trajectory. MRI supports dissemination in space and time, exclusion of mimics, treatment monitoring, and characterization of occult tissue injury. The 2024 revisions of the McDonald criteria and the accompanying MAGNIMS--CMSC--NAIMS recommendations further elevate imaging by recognizing the optic nerve and incorporating the central vein sign (CVS) and paramagnetic rim lesions (PRLs) under specified conditions \cite{mcdonald2024,barkhof2024}. Earlier consensus statements established the acquisition and interpretation principles on which these changes depend \cite{magnims2016,wattjes2021}. The practical consequence is an expanding reading task: clinicians must combine brain, spinal cord, and sometimes optic-nerve examinations; compare several contrasts and prior visits; distinguish new inflammatory activity from technical variation; and place imaging findings in a clinical differential diagnosis.
+
+
+Manual review is therefore limited less by a lack of expertise than by scale and reproducibility. Small lesions are easily missed, confluent lesions are difficult to count, volume measurements vary with contouring policy, and serial comparison is sensitive to positioning, resolution, and registration. Susceptibility markers require additional lesion-level assessment. Quantitative measures of atrophy are below the threshold of reliable visual estimation over short intervals. Artificial intelligence (AI) can assist at each stage: reconstruction, quality control, registration, missing-sequence synthesis, harmonization, lesion segmentation, biomarker detection, diagnosis, and prognosis. These functions are not interchangeable. A method that generates visually convincing FLAIR images may still erase a 3-mm lesion; a high Dice score does not establish safe longitudinal monitoring; and a classifier that separates established MS from healthy controls does not reproduce diagnosis among patients with plausible mimics.
+
+
+Deep learning in MS MRI has progressed from patch-based convolutional neural networks (CNNs) to multiscale encoder--decoders, self-configuring pipelines, Transformers, generative models, and large pretrained representations. Existing reviews document this growth, but pooled accuracy estimates and model-by-model catalogs can hide the determinants of clinical value: unique patients rather than image counts, patient-level splitting, annotation uncertainty, acquisition shift, calibration, external validation, and the decision supported \cite{diagnosis_meta,dl_systematic}. Fig.~\ref{fig:1} therefore frames the survey as a chain from imaging input and data evidence to architecture, task output, measurement, and clinical evidence. It also defines the survey's three contributions: a data-realism analysis of MS benchmarks, a mechanism-centered synthesis of deep networks and training objectives, and a task-specific appraisal that separates technical performance from clinical utility. The organizing question is not which network is universally best, but which inductive bias, training objective, data regime, and validation design fit a particular MS MRI task.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{figures/fig01_survey_map.pdf}
+\caption{Evidence-centered survey map. Synthetic FLAIR, susceptibility-sensitive, and cervical-cord MRI provide the imaging substrate; data provenance, input representation, and learning mechanism are orthogonal design dimensions that combine according to task; and the evidence profile separates internal testing, held-out centers, prospective workflow evaluation, and patient net benefit. The single vertical arrow denotes increasing validation maturity, not increasing model performance.}
+\label{fig:1}
+\end{figure*}
+
+This is a structured critical survey rather than a registered systematic review. We examined publications from January 2015 through June 2026, supplemented by foundational architectures, challenges, diagnostic criteria, and regulatory sources. PubMed/MEDLINE, IEEE Xplore records, publisher pages, challenge repositories, public device records, and backward and forward citation tracking were used. Sources were included when they described an MS-relevant dataset, AI method, technical or external validation, workflow evaluation, or applicable reporting and deployment guidance. Unverifiable scraped collections, non-imaging AI, and studies without separable training and testing evidence were excluded. We appraised the evidence using CLAIM 2024, TRIPOD+AI, PROBAST+AI, STARD-AI, DECIDE-AI, and FUTURE-AI \cite{claim2024,tripod_ai,probast_ai,stard_ai,decide_ai,future_ai}. No meta-analysis was performed because lesion definitions, prevalence, sequences, test populations, and validation levels were too heterogeneous for defensible pooling. This approach supports a task-level and evidence-level synthesis while acknowledging that it is not exhaustive.
+
+
+\section{Fundamentals of MRI Images and Public Benchmarks}\label{sec:fundamentals-of-mri-images-and-public-benchmarks}
+
+\subsection{MRI Images as Inputs for Artificial Intelligence}\label{subsec:mri-images-as-inputs-for-artificial-intelligence}
+
+For AI, an MRI examination is best understood as a spatially registered collection of voxel arrays whose contrasts provide complementary, imperfect views of tissue. T1-weighted images describe anatomy and support tissue segmentation and atrophy measurement; T2-weighted and proton-density images increase sensitivity to water-rich abnormalities; FLAIR suppresses cerebrospinal-fluid signal and is the workhorse for supratentorial white-matter lesions; post-contrast T1-weighted imaging reveals blood--brain-barrier disruption; double inversion recovery can increase cortical-lesion conspicuity; and susceptibility-weighted imaging or quantitative susceptibility mapping supports CVS and PRL assessment \cite{filippi2019,sati2016,bagnato2024,absinta2016}. These contrasts are not labels for fixed biological states. A lesion may be visible on one sequence and ambiguous on another, enhancement is time-limited, and susceptibility markers depend on acquisition and reader eligibility rules. Fig.~\ref{fig:2} links these inputs to the MS targets they can support without implying that every sequence is available in routine care.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{figures/fig02_mri_inputs.pdf}
+\caption{MRI inputs for MS-oriented AI. Synthetic schematic anatomy illustrates complementary T1-weighted, T2-weighted, FLAIR, post-contrast T1-weighted, susceptibility-sensitive, and cervical-cord appearances; it is not patient data. Vector annotations connect sequence information to white-matter lesions, enhancement, CVS, PRL, cord lesions, 2-D/2.5-D/3-D representations, preprocessing, and acquisition-domain variables.}
+\label{fig:2}
+\end{figure*}
+
+Brain MRI is commonly represented as a stack of axial slices or a three-dimensional volume; spinal cord MRI adds a small, elongated structure affected by partial volume, motion, pulsation, and inconsistent axial coverage. Two-dimensional networks are inexpensive and can exploit large in-plane resolution, but ignore through-plane context. A 2.5-D method combines neighboring slices or orthogonal views while retaining two-dimensional operators. Three-dimensional networks model volumetric continuity and permit voxel-level outputs, but their receptive field is constrained by patch size, memory, and anisotropic resolution. Multisequence networks can stack aligned contrasts as channels, use contrast-specific encoders, or fuse features later. Each choice imposes assumptions about sequence availability and registration. A model trained on T1, T2, and FLAIR cannot silently treat a missing channel as an ordinary zero image.
+
+
+MRI intensity has no universal physical scale across scanners. Field strength, manufacturer, receive coil, pulse sequence, reconstruction software, patient positioning, and software upgrades can all alter contrast and texture. Preprocessing---bias-field correction, skull removal, denoising, registration, resampling, intensity normalization, and cropping---can reduce irrelevant variation, but may also introduce shortcuts or suppress pathology. Resampling changes the apparent size of small lesions; aggressive registration can deform new lesions; normalization based on all study data leaks test-distribution information; and harmonization can remove disease signal when site and phenotype are correlated. DeepHarmony and HACA3 illustrate learned contrast and site harmonization, whereas super-resolution can improve apparent detail in thick-slice FLAIR, but each transformation requires downstream lesion-preservation tests rather than PSNR alone \cite{deepharmony,haca3,giraldo}. Augmentation should similarly represent plausible variation in geometry, intensity, noise, motion, and missing contrasts without deleting or inventing clinically meaningful lesions.
+
+
+Table~\ref{tab:1} summarizes the principal relationship between sequences and targets. The central design principle is conditional sufficiency: inputs should contain the information needed for the intended output, and evaluation should match the conditions under which those inputs will be acquired. A FLAIR-only model may be suitable for screening new white-matter lesions but not for classifying enhancement, CVS, or PRL. Conversely, a specialized susceptibility model may be technically strong but operationally limited by sequence availability and non-evaluable lesions.
+
+
+\begin{table*}[!t]
+\centering
+\caption{MRI SEQUENCES, AI INPUTS, AND MS TARGETS}
+\label{tab:1}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{1.10}
+\begin{tabularx}{\textwidth}{@{}YYYY@{}}
+\toprule
+\textbf{MRI input} & \textbf{Typical AI representation} & \textbf{MS-relevant target} & \textbf{Primary limitation} \\
+\midrule
+T1-weighted & 2-D/3-D anatomy channel & Tissue segmentation, regional volume, atrophy & Lesions may be subtle; scanner-dependent contrast \\
+T2-weighted / PD & Single or paired channels & Water-rich lesions and cord abnormalities & CSF and nonspecific hyperintensity reduce specificity \\
+FLAIR & 2-D, 2.5-D, or 3-D volume & White-matter burden; new or enlarging lesions & Motion, thick slices, confluent lesions, and vascular mimics \\
+Post-contrast T1 & Registered pre/post or post-only volume & Active enhancing lesions & Rare positives, vessels, and acquisition timing \\
+DIR / PSIR & High-resolution cortical contrast & Cortical and leukocortical lesions & Limited availability and high rater uncertainty \\
+SWI / T2* / QSM & Magnitude/phase or susceptibility maps & CVS and PRL & Eligibility rules, orientation, and specialized acquisition \\
+Spinal T2/STIR/PSIR & Sagittal plus axial 2-D/3-D inputs & Cord area and intramedullary lesions & Small anatomy, pulsation, partial volume, and incomplete coverage \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Public MS MRI Benchmarks}\label{subsec:public-ms-mri-benchmarks}
+
+Public challenges made MS imaging AI measurable, but scan counts can exaggerate independent sample size. The ISBI 2015 longitudinal resource contains 82 sessions from only 19 patients, all acquired in one 3-T Philips environment; its repeated visits are useful for longitudinal analysis but create severe leakage if sessions rather than patients are randomized \cite{carass2017,carass_data}. MSSEG 2016 contains 53 patients across three sites and four scanners, with seven expert delineations and an unseen-scanner component in testing \cite{msseg_descriptor,msseg_challenge}. Its enduring value is the explicit demonstration that the reference standard changes with the rater and fusion rule. MSSEG-2 advances from cross-sectional burden to new-lesion segmentation in 100 longitudinal patient pairs from 15 scanners. Approximately 40\% of lesions in the final reference were initially identified by no more than two of four readers and then underwent senior-expert adjudication; this is evidence of concentrated reader difficulty, not evidence that expert annotation is generally unreliable \cite{msseg2}.
+
+
+Other public sets broaden geography and acquisition while remaining individually modest. The 3D-MR-MS collection contains 30 single-site 3-T cases with four contrasts and consensus masks; Long-MR-MS contains 20 patients and 40 older 1.5-T examinations with labels for new, disappearing, enlarging, and shrinking lesions \cite{lesjak3d,lesjaklong}. MSLesSeg provides 115 examinations from 75 patients across several systems; MS-Baghdad contributes 60 heterogeneous routine examinations from 20 centers \cite{mslesseg,msbaghdad}. SibBMS combines MS or radiologically isolated syndrome cases and controls, but its public documentation should not be interpreted as showing dense manual masks for every participant \cite{sibbms}. MS3SEG distinguishes MS lesions from other white-matter hyperintensities in 100 single-scanner cases but excludes lesions below 3 mm \cite{ms3seg}. PediMS has only nine children and 28 scans, making it more defensible as a difficult out-of-distribution probe than a training corpus \cite{pedims}. Shifts 2.0 repackages several existing resources for uncertainty research and therefore must not be counted as an independent cohort \cite{shifts2}.
+
+
+Spinal data remain much less accessible than brain FLAIR. A 30-site study of 1,042 participants supported robust cord segmentation but markedly lower lesion agreement, illustrating that cord anatomy and intramedullary lesions are distinct tasks \cite{gros2019}. Recent multicenter work increases contrast and center diversity, yet its 4,428 annotated MRI images are the source-reported unit and must not be relabeled as independent examinations or 3-D volumes; the trained model is public, whereas the constituent MRI are not a reusable public benchmark \cite{benveniste}. This asymmetry has shaped research: white-matter segmentation appears mature partly because it has labels and leaderboards, whereas cortical lesions, enhancement, CVS, PRL, spinal lesions, cognition, and treatment response have fewer shared test sets.
+
+
+Controlled cohorts and clinical-trial archives provide complementary evidence. The Swiss Multiple Sclerosis Cohort and OFSEP link prospective clinical and imaging follow-up across specialist centers, although care-driven missingness and protocol substitutions remain \cite{smsc,ofsep,ofsep_protocol}. MS PATHS enrolled 16,568 participants; 8,364 participants contributed 14,414 standardized 3-T MRI studies. Those counts should not be conflated, and the Siemens-specific acquisition did not provide dense lesion labels at cohort scale \cite{mspaths}. The NAIMS 7-T repository supports chronic-active and cortical-lesion research in a specialized high-field population \cite{naims7t}. MindGlide used 4,247 development scans from 592 scanners and externally evaluated 14,952 scans from 1,001 people and 186 scanners. Its development-patient count is recorded as NR (source discrepancy) because the abstract reports 2,934 whereas the Methods report 2,871; the scale and scanner diversity remain informative, but proprietary trial composition limits independent reproduction \cite{mindglide}. Fig.~\ref{fig:3} distinguishes open download and registration-controlled benchmarks from application-controlled cohorts and proprietary archives. Table~\ref{tab:2} reports access mode separately from license status and places these sources on a control--realism continuum rather than ranking them by size.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{figures/fig03_data_realism.pdf}
+\caption{Patient-level partitioning and multireader reference construction. Every visit from one patient is assigned to a single training, validation, or test partition; placing baseline and follow-up visits across partitions creates identity leakage. Reader-specific vector contours on synthetic FLAIR anatomy are retained before consensus or adjudication so that disagreement remains auditable. Patient letters and rows are illustrative identifiers, not a cohort-size statement.}
+\label{fig:3}
+\end{figure*}
+
+\begin{table*}[!t]
+\centering
+\caption{MS MRI DATASETS, BENCHMARKS, AND CONTROLLED COHORTS}
+\label{tab:2}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{1.10}
+\begin{tabularx}{\textwidth}{@{}ZZZZZZZZZ@{}}
+\toprule
+\textbf{Resource} & \textbf{Independent people / scans} & \textbf{Sequences and task} & \textbf{Centers / scanners} & \textbf{Longitudinal} & \textbf{Reference standard} & \textbf{Access mode} & \textbf{License} & \textbf{Main limitation} \\
+\midrule
+ISBI 2015 \cite{carass2017,carass_data} & 19 / 82 & T1, PD/T2, FLAIR; white-matter lesions & 1 site; 3-T Philips & 4--6 visits & Two manual raters & Registration-controlled & NR & Only 19 people; visit-level leakage risk \\
+MSSEG 2016 \cite{msseg_descriptor,msseg_challenge} & 53 / 53 & T1, FLAIR, PD/T2; white-matter lesions & 3 sites; 4 scanners & No & Seven experts and fusion & Registration-controlled & NR & Small labeled training set; target depends on fusion rule \\
+MSSEG-2 \cite{msseg2} & 100 / 200 & Paired FLAIR; new lesions & 15 scanners; 3 vendors & Two visits & Four readers plus senior adjudication & Registration-controlled & NR & FLAIR-only; difficult lesions concentrate disagreement \\
+3D-MR-MS \cite{lesjak3d} & 30 / 30 & T1, T2, FLAIR, post-Gd T1; lesions & 1 site; 3-T Siemens & No & Three-expert consensus & Open download & NR & Small single-scanner cohort \\
+Long-MR-MS \cite{lesjaklong} & 20 / 40 & T1, T2, PD, FLAIR; lesion change & 1 site; 1.5-T Philips & Two visits & Two-expert consensus & Open download & NR & One interval and 3-mm sections \\
+MSLesSeg \cite{mslesseg} & 75 / 115 & T1, T2, FLAIR; white-matter lesions & Several 1.5-T systems & 1--4 visits & One rater; three-expert review & Open download & NR & Most participants have one visit \\
+MS-Baghdad \cite{msbaghdad} & 60 / 60 & Routine T1/T2/FLAIR; lesions & 20 centers; 1.5 T & No & Three-expert consensus & Open download & NR & Limited harmonized protocol metadata \\
+MS3SEG \cite{ms3seg} & 100 / 100 & Routine MRI; MS lesion versus other WMH & 1 site; 1.5 T & No & Junior and senior tri-mask review & Open download & NR & Lesions below 3 mm excluded \\
+PediMS \cite{pedims} & 9 / 28 & T1, T2, FLAIR; pediatric lesions & Predominantly one 3-T site & 1--6 visits & Specialist-validated masks & Open download & NR & Too small for independent model development \\
+Multicenter cord study \cite{benveniste} & 1,849 / 4,428 annotated MRI images & Six cord contrasts; lesions & 23 centers; 1.5/3/7 T & Mixed & Expert annotations; external labeled sets & Proprietary/not released (MRI); model public & MRI reuse NR; code separately licensed & Images are the source unit, not independent exams or volumes \\
+MS PATHS \cite{mspaths} & 16,568 enrolled; 8,364 with MRI / 14,414 studies & MPRAGE and SPACE-FLAIR; outcomes & 10 institutions; Siemens 3 T & Subset & No dense masks at cohort scale & Application-controlled & NR; access agreement applies & Standardized but vendor-specific acquisition \\
+MindGlide sources \cite{mindglide} & Training patients NR (source discrepancy); 4,247 development scans; 1,001 people / 14,952 external scans & Mixed trial and clinical contrasts & 592 development / 186 external scanners & Extensive & Trial/cohort-derived labels & Proprietary & NR & Scale limits independent reproduction; patient discrepancy \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Dataset Bias and Benchmark Realism}\label{subsec:dataset-bias-and-benchmark-realism}
+
+A benchmark is clinically realistic only when its population, acquisition, labels, and evaluation mirror the intended use. Common failures include randomizing patches or visits instead of patients; using healthy controls acquired through a different pipeline; tuning repeatedly against a public test server; learning scanner or skull-stripping artifacts; and reporting only aggregate Dice in cohorts dominated by large lesions. Annotation is itself a measurement process. Raters disagree about punctate lesions, confluent boundaries, cortical location, enhancement, and susceptibility markers. Consensus can improve reproducibility but can also hide uncertainty; probabilistic or multirater labels preserve information that a binary fused mask discards.
+
+
+Dataset size does not repair spectrum bias. A large trial archive can underrepresent comorbidity, advanced disability, nonadherence, or low-resource scanners. A heterogeneous PACS archive contains clinically useful variation but also informative missingness, report-label errors, and protocol decisions that encode clinicians' prior beliefs. Patient-level splitting, site-held-out testing, demographic reporting, negative cases, scanner-upgrade stress tests, and locked preprocessing are therefore minimum safeguards. Performance on a hidden benchmark is valuable technical evidence, but it remains one step in an evidence ladder rather than proof of general clinical behavior.
+
+
+Benchmark reuse adds a subtler form of overfitting. Even when masks remain hidden, repeated submissions reveal enough information to guide architecture and threshold choices toward a fixed test distribution. A leaderboard should therefore control submissions, preserve a sequestered final set, and refresh acquisition conditions over time. Data cards should state the number of unique patients, visits per patient, sites, scanners, field strengths, native and resampled resolution, sequence availability, disease phenotype, treatment, age and sex distribution, rater process, license, and exclusions. ``Multicenter'' is not a sufficient descriptor when one dominant scanner or institution supplies most cases. Likewise, a public download is not necessarily open science if its license, consent scope, or derivative-use conditions are ambiguous.
+
+
+\FloatBarrier
+
+\section{Deep Learning-Based MRI Image Analysis}\label{sec:deep-learning-based-mri-image-analysis}
+
+\subsection{Learning Tasks and Training Paradigms}\label{subsec:learning-tasks-and-training-paradigms}
+
+MS MRI models perform reconstruction, quality control, registration, segmentation, lesion detection, diagnosis, quantitative regression, synthesis, and outcome prediction. Supervised learning dominates because voxel labels define a direct objective, but masks are expensive and inconsistent. Weak supervision uses image- or lesion-level labels; semi-supervision combines labeled and unlabeled data through pseudo-labels or consistency; self-supervision learns representations from transformations or masked content; transfer learning adapts models pretrained on other anatomy or modalities; and federated learning trains across institutions without centralizing images. These paradigms change data requirements, not the need for independent evaluation. Internal cross-validation estimates development stability, whereas site-held-out testing, geographically independent validation, and prospective use answer progressively stronger questions.
+
+
+The label and sampling unit should follow the task. Reconstruction learns from paired undersampled and reference data or from measurement consistency; quality control may use artifact categories or no-reference objectives; segmentation uses voxel masks but should sample complete patients rather than treating correlated patches as independent; detection can use lesion centers and size; classification needs patient-level diagnoses at a defined decision point; and prognosis needs outcomes anchored after image acquisition. Weak labels are attractive when radiology reports are available, but report absence does not prove lesion absence and reporting style varies by center. Pseudo-labels enlarge training sets while bounding performance to the teacher's systematic errors unless manually adjudicated data remain influential. Consistency learning assumes that perturbations preserve the target, which fails if an augmentation removes a small lesion or if two longitudinal scans contain real change.
+
+
+Training strategy also determines what can be claimed about missing data. Contrast-specific encoders and modality dropout can support flexible sequence combinations, whereas an early-fusion model assumes all channels are present and accurately aligned. Transfer learning from natural images may initialize edges and optimization; pretraining from other organs or CT provides three-dimensional structure; MS-specific self-supervision can capture scanner and anatomy patterns. None ensures that rare PRLs, cortical lesions, or pediatric appearances are represented. Federated optimization exposes a model to distributed data but does not itself provide a common reference standard. These distinctions should be reported alongside the architecture because two visually identical networks trained under different sampling and supervision regimes may have different failure boundaries.
+
+
+\subsection{Convolutional and Multiscale Networks}\label{subsec:convolutional-and-multiscale-networks}
+
+Early deep lesion systems classified patches around candidate voxels. DeepMedic uses parallel three-dimensional paths at native and downsampled resolution, combining local detail with broader context before an optional conditional random field \cite{deepmedic}. Patch sampling can balance lesion and background voxels and fit limited memory, but it reduces global anatomical context and produces correlated examples. Fully convolutional networks amortize computation over the image. Two-dimensional, 2.5-D, and three-dimensional implementations trade through-plane context against memory and anisotropy. Dilated convolution expands receptive field without pooling; cascades use a high-sensitivity proposal stage followed by false-positive reduction; and multiscale or multi-arm inputs preserve fine lesions while incorporating global tissue context \cite{gabr,mckinley,multiarm}. No design eliminates the base-rate problem: many normal voxels and vascular white-matter hyperintensities compete with relatively few, often tiny MS lesions.
+
+
+\subsection{U-Net and Encoder--Decoder Families}\label{subsec:u-net-and-encoder-decoder-families}
+
+\textbf{1) U-Net:} U-Net accepts a two-dimensional image or multisequence slice and couples a contracting convolutional encoder to an expanding decoder \cite{unet}. Pooling increases context, upsampling restores resolution, and long skips concatenate---not add---same-scale features. This bias suits dense lesion maps because high-resolution skips retain boundaries while the bottleneck supplies context. Memory depends mainly on image area, feature widths, and scales. Skips can also transmit scanner texture or vascular edges, and imbalance promotes small-lesion omission. Explicit U-Net derivatives and broader fully convolutional systems have MS task-level evaluations \cite{multiarm,gabr,chaves}, but these do not isolate architecture from data, preprocessing, or loss design; the family effect and architecture-specific prospective validation are NR. Fig.~\ref{fig:4}(a) shows the topology without asserting unreported channels.
+
+
+\textbf{2) 3D U-Net:} 3D U-Net accepts an aligned volume and replaces two-dimensional operations with volumetric counterparts; its original formulation also assigned zero loss to unlabeled voxels \cite{unet3d}. Three-dimensional receptive fields model interslice continuity for brain, cord, and change maps. Activation storage grows with patch voxels and feature widths, often forcing small patches, coarse resampling, or reduced batches; isotropic kernels may also mismatch thick slices. MS lesion systems exploit volumetric context \cite{mckinley}, but the reviewed external comparisons do not isolate canonical 3D U-Net; architecture-specific validation is NR. Fig.~\ref{fig:4}(b) depicts volumetric operators and voxel output.
+
+
+\textbf{3) Residual U-Net:} Residual U-Net accepts two- or three-dimensional images and replaces convolution blocks with units that learn $y=F(x)+x$, projecting only when dimensions differ \cite{resnet}. Short identity addition improves gradient flow, whereas long U-Net skips still concatenate same-scale features. V-Net is a volumetric residual encoder--decoder; R2U-Net adds recurrent convolution within residual units \cite{vnet,r2unet}. Greater depth, width, and projections raise memory and overfitting risk, and block recurrence is not longitudinal modeling. No reviewed external MS comparison isolated the residual connection under fixed data and training, so architecture-specific validation is NR. Fig.~\ref{fig:4}(c) distinguishes addition from concatenation.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{figures/fig04_unet_3d_residual.pdf}
+\caption{U-Net, 3D U-Net, and residual U-Net. Pale blue denotes encoder features, pale red decoder features and predictions, and gray neutral operators. Long matching-resolution U-Net skips use channel concatenation (C/Concat). The residual block instead uses a short identity or projection branch with element-wise addition (+/Add). Arrows run from input to prediction.}
+\label{fig:4}
+\end{figure*}
+
+\textbf{4) Dense U-Net:} Dense U-Net accepts two- or three-dimensional MRI and places dense blocks within an encoder--decoder. Inside each block, every layer receives the channel-wise concatenation of all preceding feature maps, enabling feature reuse and short gradient paths \cite{densenet}. This mechanism can preserve multiscale lesion cues under limited training data, but channel growth is memory-intensive and can retain site-specific low-level texture. H-DenseUNet combines two-dimensional dense features with a three-dimensional branch, although its primary evidence arose from liver CT rather than MS MRI \cite{hdenseunet}. It therefore explains a useful inductive bias but not MS performance. For MS lesion or tissue segmentation, architecture-specific external validation is NR in the reviewed evidence. Fig.~\ref{fig:5}(a) exposes the all-to-later concatenations; none is drawn as addition.
+
+
+\textbf{5) Attention U-Net:} Attention U-Net accepts two- or three-dimensional MRI and inserts a gate on each long encoder skip. A coarse decoder signal and the encoder feature jointly produce spatial coefficients; element-wise multiplication then forms the gated skip before decoder concatenation \cite{attentionunet}. This mechanism can suppress irrelevant tissue and vascular candidates while retaining fine features for lesion segmentation. It is not Transformer self-attention because it does not construct token-to-token interactions. Resource use depends on the number and spatial size of gated skip maps, and a gate may suppress low-contrast or very small lesions under domain shift. The reviewed sources did not verify an external MS study isolating Attention U-Net from other design choices; MS-specific architecture validation is therefore NR. Fig.~\ref{fig:5}(b) identifies the gating signal, coefficient, multiplication, and gated skip explicitly.
+
+
+\textbf{6) nnU-Net:} nnU-Net accepts a labeled segmentation dataset rather than a prescribed image shape and is not a fixed new layer or backbone. It derives a dataset fingerprint and uses rule-based planning plus cross-validation to configure spacing, normalization, patch and batch size, 2-D or 3-D U-Nets, cascades, augmentation, ensembling, and postprocessing \cite{nnunet}. Its advantage is reproducible adaptation of a strong local multiscale pipeline with little manual architecture tuning; resource use depends on planned patch and batch sizes, the number of folds and candidate models, and whether an ensemble is retained. It remains vulnerable to uncertain labels, time-point leakage, and an unrepresentative cohort. MS use of configured pipelines does not by itself isolate a framework effect, and prospective MS-specific validation of nnU-Net as a complete procedure is NR. Fig.~\ref{fig:5}(c) therefore places candidate U-Nets inside the complete planning and validation process rather than portraying nnU-Net as a convolution block.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{figures/fig05_dense_attention_nnunet.pdf}
+\caption{Dense U-Net, attention U-Net, and nnU-Net. A dense block concatenates all preceding features into each later layer; it does not add them. The attention gate combines an encoder feature with a decoder gating signal to estimate an attention coefficient, multiplies that coefficient with the skip feature ($\odot$/Multiply), and then concatenates the gated skip in the decoder. nnU-Net is shown as rule-based configuration from a dataset fingerprint through preprocessing, 2-D/3-D/cascade planning, cross-validation, ensembling, and validation-selected postprocessing, not as a novel convolutional block.}
+\label{fig:5}
+\end{figure*}
+
+Across these families, architectural labels alone do not predict clinical performance. A shallow 2-D model may be preferable for thick-slice routine imaging; a 3-D residual model may exploit isotropic research scans; attention may reduce false positives but also lower sensitivity; and a self-configured pipeline may fit its development data while remaining externally untested. Table~\ref{tab:3} compares the required input, local or global mechanism, concrete resource determinants, likely advantage, failure mode, and verified MS-specific validation record. Same-dataset comparisons are informative; cross-dataset ranking by Dice is not.
+
+
+\begin{table*}[!t]
+\centering
+\caption{DEEP LEARNING ARCHITECTURE FAMILIES}
+\label{tab:3}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{1.10}
+\begin{tabularx}{\textwidth}{@{}ZZZZZZZZ@{}}
+\toprule
+\textbf{Family} & \textbf{Input} & \textbf{Core mechanism} & \textbf{MS MRI task} & \textbf{Resource determinants} & \textbf{Principal advantage} & \textbf{Typical failure} & \textbf{MS-specific validation record used here} \\
+\midrule
+U-Net & 2-D & Encoder--decoder; matching-scale Concat skips & Brain lesion segmentation & Pixel area, feature widths, and number of scales & Preserves local detail & No through-plane context; texture shortcuts & MS task use reported; isolated family effect: NR \\
+3D U-Net & 3-D volume or patch & Volumetric operators and Concat skips & Brain and cord segmentation & Patch voxels, feature widths, and activation storage & Models volumetric continuity & Patch context and anisotropy & Canonical 3D U-Net MS external validation: NR \\
+Residual U-Net & 2-D/3-D & Short identity Add paths inside blocks & Deeper segmentation & Block depth, feature widths, and projection paths & Improves gradient propagation & Parameter cost and overfitting & Isolated MS validation: NR \\
+Dense U-Net & 2-D/3-D & All-preceding feature Concat & Lesion segmentation & Growth rate and accumulated feature channels & Feature reuse & Channel growth and texture dependence & Isolated MS validation: NR \\
+Attention U-Net & 2-D/3-D & Decoder-gated encoder skips with $\odot$/Multiply & Small-lesion localization & Number and spatial size of gated skip features & Suppresses irrelevant skip regions & Can suppress subtle true lesions & Attention U-Net specifically in MS: NR \\
+nnU-Net & 2-D/3-D/cascade & Dataset fingerprint and rule-based pipeline planning & General segmentation baseline & Planned patch/batch size, folds, candidate models, and ensemble & Reproducible configuration baseline & Cannot repair biased data or labels & Framework-specific MS external validation: NR \\
+Vision Transformer & 2-D/3-D tokens & Global MHSA with positional encoding & Classification or encoder backbone & Token count (quadratic attention), width, depth, and heads & Long-range interaction & Data demand and coarse-token detail loss & Stand-alone ViT in MS: NR \\
+Swin Transformer & 2-D/3-D tokens & W-MSA, SW-MSA, and patch merging & Dense prediction & Window size, stage depth, token count, and feature width & Hierarchical scalable context & Window and merging losses & Swin-specific MS external validation: NR \\
+UNETR & 3-D volume & Transformer encoder; multidepth CNN decoder skips & Volumetric segmentation & 3-D token count, encoder depth/width, and decoder activations & Global 3-D context & Memory and token-resolution limits & UNETR-specific MS external validation: NR \\
+CNN--Transformer hybrid & 2-D/3-D & Local CNN features followed by global token modeling & Segmentation and classification & CNN feature maps plus token count, width, and depth & Combines local and global bias & Downsampling and token bottleneck & TransUNet/CoTr-specific MS external validation: NR \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Deep Unfolding and Data-Consistency Networks}\label{subsec:deep-unfolding-and-data-consistency-networks}
+
+Deep unfolding maps iterations of a model-based optimization algorithm to learnable stages \cite{unrolling}. In MRI reconstruction, a learned regularizer alternates with a data-consistency operation tied to measured k-space and the acquisition operator. MoDL shares a CNN regularizer across stages, while end-to-end variational networks learn regularization and coil-sensitivity components around repeated consistency updates \cite{modl,varnet}. This structure constrains reconstruction more than an unconstrained image generator, but does not guarantee preservation of MS lesions, CVS, or PRLs. Downstream lesion sensitivity, volume bias, and reader assessment should accompany PSNR, SSIM, and NMSE. Fig.~\ref{fig:8}(a) shows the recurring learned-prior/data-consistency cycle.
+
+
+\subsection{Transformer and Hybrid Architectures}\label{subsec:transformer-and-hybrid-architectures}
+
+\textbf{1) Vision Transformer:} Vision Transformer (ViT) accepts a two-dimensional image or three-dimensional volume partitioned into nonoverlapping patches. Linear embedding and positional encoding convert patches into tokens, which pass through pre-normalized multihead self-attention and multilayer perceptron residual blocks \cite{vit}. Global token interaction can relate distant lesion locations and diffuse tissue patterns, making ViT a candidate backbone for classification, prognosis, or a dense decoder. It is not itself a complete medical segmentation network. Coarse patches can dilute a small lesion within a mostly normal token, whereas fine volumetric patches create quadratic attention and high memory cost. In the MS-specific evidence reviewed here, robust independent external validation of a stand-alone ViT is NR. Fig.~\ref{fig:6}(a) therefore ends at encoded tokens and a task-specific head.
+
+
+\textbf{2) Swin Transformer:} Swin Transformer accepts patch tokens and restricts attention to local windows, alternating window multihead self-attention with shifted-window attention so information crosses previous boundaries \cite{swin}. Patch merging reduces resolution while expanding channels, producing hierarchical features suited to lesion segmentation, tissue quantification, and classification heads. Compared with global ViT, this structure lowers attention cost and recovers multiscale organization; window boundaries and merging can nevertheless weaken isolated small-lesion signals, and volumetric variants remain computationally demanding. Self-supervised Swin evidence from large CT collections explains transfer potential but is not MS validation \cite{swin_ssl}. Independent MS-specific external maturity is therefore NR in the included evidence. Fig.~\ref{fig:6}(b) shows both window regimes and patch merging rather than generic attention.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{figures/fig06_vit_swin.pdf}
+\caption{Vision Transformer and Swin Transformer. ViT partitions an image or volume into patches, applies linear embedding and positional encoding, and repeats pre-normalized MHSA and MLP sublayers with residual addition before a task-specific head or decoder. Swin alternates window attention (W-MSA) and shifted-window attention (SW-MSA) and uses patch merging to form hierarchical features. Gray nodes are token or normalization operations; pale blue blocks are encoders.}
+\label{fig:6}
+\end{figure*}
+
+\textbf{3) UNETR:} UNETR accepts a three-dimensional volume, forms 3-D patch tokens, and processes them with a single-resolution Transformer encoder \cite{unetr}. Hidden states from several encoder depths are reshaped and projected to multiple spatial scales, then joined to a CNN decoder. The resulting global-to-local mechanism is appropriate for volumetric lesion and tissue segmentation, but coarse tokenization may erase punctate lesions and fine tokenization imposes substantial GPU memory. Pretraining and augmentation can reduce data demands without resolving domain shift. The reviewed evidence did not verify MS-specific external validation of UNETR; that field is therefore NR rather than a maturity claim. Fig.~\ref{fig:7}(a) identifies the 3-D tokens, hidden-state taps, and convolutional decoder without adding a CNN encoder or Swin-style patch merging.
+
+
+\textbf{4) CNN--Transformer hybrids:} A hybrid accepts slices or volumes and orders local and global modeling explicitly. TransUNet first extracts local CNN features, tokenizes the low-resolution map, applies global Transformer encoding, and reconstructs a segmentation with an upsampling decoder and high-resolution CNN skips \cite{transunet}. CoTr instead applies deformable attention to multiscale three-dimensional CNN features at sparse learned locations \cite{cotr}. CNN locality helps preserve texture and edges, whereas token interaction expands anatomical context for segmentation or classification. Resource use combines CNN activation maps with the token count, Transformer width, and depth, and small lesions may disappear during CNN downsampling or sparse token selection. The primary TransUNet and CoTr demonstrations were not MS studies; MS-specific external validation of these named hybrids is NR. Fig.~\ref{fig:7}(b) depicts the verified TransUNet order and does not relabel every attention-equipped CNN as a Transformer.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{figures/fig07_unetr_transunet.pdf}
+\caption{UNETR and a CNN-Transformer hybrid represented by TransUNet. UNETR embeds 3-D patches, extracts hidden states at several Transformer depths, reshapes them into spatial features, and joins them to a CNN decoder. TransUNet first extracts local CNN features, tokenizes the deepest feature map for global Transformer modeling, and then decodes with retained higher-resolution CNN skips. Pale blue is encoding, pale red is decoding/output, and C denotes channel concatenation.}
+\label{fig:7}
+\end{figure*}
+
+Comparative claims require restraint. ViT offers global attention but weak inherent hierarchy; Swin provides local windows and hierarchical scaling; UNETR uses a Transformer encoder with CNN decoding for 3-D segmentation; and TransUNet moves from CNN features to tokens before decoding. Self-supervised Swin pretraining has improved medical tasks, but prominent demonstrations used thousands of CT volumes, not MS MRI, so transfer must be revalidated \cite{swin_ssl}. Their value in MS depends more on lesion scale, data volume, acquisition diversity, and decoder design than on the Transformer label.
+
+
+\subsection{Generative and Emerging Models}\label{subsec:generative-and-emerging-models}
+
+Generative models address missing contrasts, harmonization, super-resolution, augmentation, and anomaly modeling. A variational autoencoder represents a distribution in latent space and balances reconstruction with a Kullback--Leibler penalty \cite{vae}. GANs train a generator against a discriminator; conditional GANs use paired inputs, whereas CycleGAN permits unpaired translation through cycle consistency \cite{gan,pix2pix,cyclegan}. Diffusion models learn a reverse denoising process after a fixed forward noising process, and score-based models generalize this view through stochastic differential equations \cite{ddpm,scoresde}. Visual realism is not pathology fidelity. Registration error can be learned as disease change, and a normality prior can erase rare lesions. Clinical evaluation must measure lesion addition, removal, and modification, not only distributional similarity.
+
+
+State-space models provide a different long-context mechanism. S4 efficiently represents structured state dynamics; Mamba makes state updates input-selective without query--key--value attention \cite{s4,mamba}. SegMamba and Swin-UMamba combine convolutional or U-shaped spatial processing with selective state-space blocks \cite{segmamba,swinumamba}. Linear sequence scaling is attractive for three-dimensional volumes and long follow-up, yet spatial flattening order, directional bias, and limited MS-specific external evidence prevent claims of maturity. Fig.~\ref{fig:8} separates this selective-state mechanism from probabilistic generation and reconstruction unfolding.
+
+
+\subsection{Multimodal and Longitudinal Models}\label{subsec:multimodal-and-longitudinal-models}
+
+Multimodal fusion may occur at the input, within contrast-specific feature encoders, through cross-attention, or after independent decisions. Early fusion is simple but assumes aligned, complete contrasts; late fusion tolerates missing channels but may discard cross-contrast detail. Longitudinal models face a related choice. Two visits can be stacked, processed by separate paths, encoded with shared weights, or represented as a time sequence. Attention-guided two-path networks suppress stable lesions, large three-dimensional CNNs learn new-or-enlarging lesion maps directly, and a verified Siamese design registers baseline and follow-up inputs before shared-weight encoding, feature comparison, and change-map decoding \cite{gessert,kruger,kamraoui}. The shared weights enforce comparable representations but do not correct registration error; independent segmentations followed by subtraction additionally amplify threshold variation. Self-supervised change detection can create pseudo-change examples, but synthetic changes do not substitute for real scanner drift and treatment effects \cite{to2021}. For EDSS, PIRA, cognition, or treatment response, time zero, outcome horizon, censoring, relapse, and therapy changes must be specified \cite{sharrad,msbase_pira}. Fig.~\ref{fig:8}(d) makes the temporal direction and shared weights explicit, completing the comparison of emerging architectures.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{figures/fig08_emerging_models.pdf}
+\caption{Emerging and longitudinal architectures. Each deep-unfolding stage contains a learned prior followed by a data-consistency operation constrained by the same measured k-space. Separate panels distinguish VAE, GAN, and diffusion mechanisms; selective state-space scans; and longitudinal analysis with baseline and follow-up registration, shared-weight encoders, feature comparison, and change-map or risk output. The MRI textures are synthetic schematic anatomy, not patient data.}
+\label{fig:8}
+\end{figure*}
+
+\subsection{Self-Supervised and Foundation Models}\label{subsec:self-supervised-and-foundation-models}
+
+Self-supervision can reduce dependence on lesion masks. Models Genesis reconstructs volumes after intensity and spatial corruption; SimCLR and MoCo learn invariance between augmented views; masked autoencoders encode only visible patches; and DINO trains a momentum teacher without explicit negative pairs \cite{modelsgenesis,simclr,moco,mae,dino}. In MS MRI, an ``invariant'' augmentation must not remove or relocate a lesion, and same-patient visits are not automatically positive pairs because true disease change may exist. Pretraining from CT or natural images may transfer anatomy and optimization but not sequence-specific pathology.
+
+
+Promptable foundation models introduce a different interface. Segment Anything combines a reusable image encoder, prompt encoder, and mask decoder; MedSAM adapts this design on a large collection of medical image--mask pairs, commonly using box prompts \cite{sam,medsam}. Neither is an autonomous MS lesion detector, and two-dimensional prompt performance does not establish volumetric consistency, small-lesion coverage, or longitudinal reliability. Claims of ``foundation'' capability require transparent training composition, MS-specific external testing, and realistic prompts generated without access to the reference mask.
+
+
+\subsection{Loss Functions}\label{subsec:loss-functions}
+
+The training objective determines which errors are cheap or expensive. For reconstruction, the mean absolute error $L_1=\frac{1}{N}\sum_i|x_i-\hat{x}_i|$ is less dominated by outliers than $L_2=\frac{1}{N}\sum_i(x_i-\hat{x}_i)^2$; Huber loss interpolates between them. SSIM-based, perceptual, and adversarial terms improve structural or visual appearance, while data-consistency loss penalizes disagreement with acquired measurements. None directly guarantees preservation of an unlabeled lesion, so a downstream task or pathology constraint is needed.
+
+
+For binary segmentation, cross-entropy is
+
+
+\begin{equation}
+L_{\mathrm{CE}}=-\sum_i\left[y_i\log p_i+(1-y_i)\log(1-p_i)\right],
+\label{eq:ce}
+\end{equation}
+
+where $y_i\in\{0,1\}$ and $p_i$ is the predicted lesion probability. Because background dominates MS volumes, cross-entropy alone may underweight lesions. Soft Dice instead optimizes overlap,
+
+
+\begin{equation}
+L_{\mathrm{Dice}}=1-\frac{2\sum_i p_i y_i+\epsilon}{\sum_i p_i+\sum_i y_i+\epsilon},
+\label{eq:dice}
+\end{equation}
+
+with a smoothing constant $\epsilon$; implementations must define empty-mask behavior. Generalized Dice reweights classes by inverse volume \cite{gdl}. A smoothed Tversky loss is
+
+
+\begin{equation}
+L_{\mathrm{T}}=1-\frac{\mathrm{TP}+\epsilon}{\mathrm{TP}+\alpha\mathrm{FP}+\beta\mathrm{FN}+\epsilon}.
+\label{eq:tversky}
+\end{equation}
+
+where TP, FP, and FN are soft true-positive, false-positive, and false-negative sums; $\alpha$ and $\beta$ are nonnegative error weights, and $\epsilon$ is the smoothing constant. Setting $\beta>\alpha$ penalizes missed lesion voxels more strongly. This loss was introduced for highly imbalanced three-dimensional MS lesion segmentation \cite{tversky}. Focal loss multiplies cross-entropy by $(1-p_t)^\gamma$, where $p_t$ is the probability assigned to the true class and $\gamma\geq0$ is the focusing parameter; it emphasizes difficult examples while also amplifying mislabeled voxels \cite{focal}. Dice or Tversky loss can improve sensitivity without ensuring realistic lesion counts.
+
+
+Boundary loss integrates predicted probabilities with the signed distance map of the reference contour; Hausdorff-oriented objectives provide differentiable approximations to extreme boundary error \cite{boundaryloss,hausdorffloss}. They are usually combined with regional loss because a boundary term cannot recover a lesion missed completely. ``Surface loss'' should not be treated as one universal formula, and the surface Dice metric is not automatically a training loss. For representation learning, contrastive losses separate or align embeddings, masked reconstruction predicts hidden content, and mean-teacher consistency matches student and exponential-moving-average teacher outputs under perturbation \cite{mean_teacher}. Prognosis needs outcome-aware objectives: regression loss fits continuous scores, ranking loss orders risk, and Cox partial likelihood handles censoring through risk sets \cite{cox,deepsurv}. DeepHit offers a non-proportional-hazards formulation for discretized competing risks \cite{deephit}. Fig.~\ref{fig:9} links four clinically recognizable segmentation errors---small-lesion omission, false-positive candidates, boundary displacement, and volume bias---to complementary regional, asymmetric, focal, and boundary-aware objectives. It does not imply that any loss guarantees correction. Table~\ref{tab:4} extends this task--error mapping to reconstruction, representation learning, and prognosis.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{figures/fig09_error_loss_mapping.pdf}
+\caption{Clinically distinct segmentation errors require different objective emphasis and reporting bundles. Synthetic FLAIR thumbnails with vector contours illustrate small-lesion omission, a false-positive lesion, boundary displacement, and volume bias. Focal, Tversky, specificity-aware overlap, regional, boundary, surface, and volume-aware terms address different error components, but no loss guarantees lesion recovery. No empirical performance values are shown.}
+\label{fig:9}
+\end{figure*}
+
+\begin{table*}[!t]
+\centering
+\caption{LOSS FUNCTIONS AND TASK-SPECIFIC METRICS}
+\label{tab:4}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{1.10}
+\begin{tabularx}{\textwidth}{@{}ZZZZZ@{}}
+\toprule
+\textbf{Objective family} & \textbf{Examples} & \textbf{Best-matched task} & \textbf{Strength} & \textbf{Failure mode and required metric} \\
+\midrule
+Voxel reconstruction & L1, L2, Huber & Reconstruction and synthesis & Stable intensity fidelity & Blur or outlier sensitivity; add SSIM, NMSE, and lesion-preservation tests \\
+Perceptual / adversarial & Feature and GAN losses & Synthesis and harmonization & Plausible texture & Hallucination; adjudicate lesion addition and deletion \\
+Data consistency & Measured k-space residual & Accelerated reconstruction & Preserves acquired measurements & Does not guarantee pathology; evaluate downstream tasks \\
+Voxel classification & Cross-entropy and focal & Segmentation and detection & Probabilistic local target & Imbalance and noisy labels; add lesion sensitivity and PPV \\
+Regional overlap & Dice, generalized Dice, Tversky & Imbalanced segmentation & Optimizes overlap & Volume dominance and empty masks; add lesion-instance metrics \\
+Boundary geometry & Boundary and Hausdorff-oriented & Contour refinement & Penalizes shape error & Cannot recover a completely missed lesion; report HD95 \\
+Representation & Contrastive and masked reconstruction & Self-supervised pretraining & Uses unlabeled images & Invalid invariances; test downstream external data \\
+Consistency & Teacher--student and pseudo-label & Semi-supervised learning & Uses unlabeled images & Confirms teacher errors; audit calibration \\
+Outcome & Regression, ranking, Cox, DeepHit & EDSS, PIRA, and cognition & Handles continuous or censored targets & Confounding; report calibration, C-index, and net benefit \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\subsection{Metrics and Evidence Quality}\label{subsec:metrics-and-evidence-quality}
+
+Reconstruction metrics include PSNR, SSIM, and NMSE, but lesion preservation and downstream measurement error are more clinically meaningful. Segmentation requires Dice together with lesion-wise sensitivity, positive predictive value, false-positive lesions per scan, volume bias, and HD95. A high Dice can coexist with missed small lesions because large confluent lesions dominate voxels. Classification requires sensitivity, specificity, predictive values at realistic prevalence, AUC, calibration intercept and slope, and decision-curve analysis. Prognosis requires C-index or time-dependent AUC plus calibration, Brier score, and net benefit \cite{calibration,decisioncurve}. Metric bundles should therefore be selected from the target error and intended decision rather than from convention. Fig.~\ref{fig:10} links five complementary requirements: patient-level separation and locked external testing; overlap, lesion, boundary, and burden operators for segmentation; case-spectrum and time-context constraints on diagnostic and prognostic claims; stratified aggregation with uncertainty and abstention; and an evidence ladder that bounds the permitted clinical role. Metric adequacy does not upgrade a study from internal to external or prospective validation, nor does it establish clinical utility. The figure contains no curves or empirical performance values.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{figures/fig10_evaluation_frameworks.pdf}
+\caption{Evaluation logic from leakage control to governed clinical use. Five panels connect patient-level splitting and locked external testing, complementary segmentation metrics, bounded diagnostic and prognostic claims, stratified aggregation with uncertainty and abstention, and an evidence ladder from internal testing to patient net benefit. Pale blue denotes technical measurement and validation operations, pale red denotes clinical or governance actions, and gray denotes neutral constraints. Metric adequacy does not establish evidence strength or clinical utility. No empirical performance values are shown.}
+\label{fig:10}
+\end{figure*}
+
+Evidence strength rises from subject-level internal validation to a same-institution hold-out, leave-site-out testing, geographically independent external validation, temporal validation, prospective workflow study, and patient-outcome evaluation. Domain-shift and uncertainty studies show that confident segmentation can fail on unfamiliar scanners; calibration and out-of-distribution detection must be assessed together \cite{nair_uncertainty,mehrtash_calibration,marten_ood}. Large-scale MS systems and open tools demonstrate that multicenter training is feasible, but external performance commonly falls relative to development data \cite{cerri,bianca,chaves}. Code, weights, preprocessing, thresholds, and patient-level splits are all needed for reproducibility. MI-CLAIM and the medical algorithmic-audit framework complement task-specific reporting by making the model, data lineage, and lifecycle testable \cite{miclaim,algorithm_audit}.
+
+
+The validation unit must match the clinical claim. Voxel-level confidence intervals do not account for correlation within lesions, patients, and centers. Cross-validation folds should be grouped by patient, and hyperparameter selection should be nested so that the reported test fold does not influence model choice. A ``multicenter'' random hold-out may still contain images from every training institution and thus measures interpolation within a shared ecosystem. Leave-one-site-out testing is stronger, but coordinated trials can share eligibility, protocol, and central preprocessing. A geographically and operationally independent PACS cohort tests a more meaningful shift; prospective temporal ordering additionally tests software and protocol drift. Reader studies should randomize or counterbalance AI assistance, use current best practice as the comparator, and capture corrections, confidence, time, missed activity, and downstream recommendations.
+
+
+Interpretability should be evaluated as an interface and safety mechanism, not as a colorful explanation appended to an invalid model. Saliency maps may identify borders, skull stripping, ventricles, or lesions, but are unstable and do not establish causal reasoning. More actionable mechanisms include input-quality checks, explicit sequence recognition, lesion-level candidates linked across time, editable contours, calibrated uncertainty, and abstention when the case is outside the supported domain. The output must distinguish ``no lesion detected'' from ``analysis unreliable.'' Reporting should specify who reviews the result, how disagreement is resolved, where failures are logged, and whether an update changes thresholds or preprocessing. These details determine the behavior of the human--AI system more directly than a small improvement in mean Dice.
+
+
+\subsection{Task-Specific Evidence and Clinical Translation}\label{subsec:task-specific-evidence-and-clinical-translation}
+
+\textbf{1) White-matter and enhancing lesions:} Cross-sectional brain white-matter lesion segmentation is the most extensively benchmarked task. Large-scale fully convolutional studies, simultaneous tissue--lesion segmentation, open longitudinal pipelines, BIANCA-MS, and nnU-Net-style systems commonly show useful overlap and volume agreement under matched acquisition \cite{gabr,mckinley,cerri,bianca}. The clinically difficult tail is consistent across methods: small, juxtacortical, infratentorial, low-burden, and confluent lesions; scans with vascular white-matter hyperintensities; and unfamiliar scanners. Because Dice is volume-weighted, a model can achieve an acceptable patient mean while missing several small lesions. Lesion sensitivity, positive predictive value, false positives per scan, case-level activity classification, and manual correction time are therefore indispensable. Contrast-enhancing lesions are rarer and more imbalanced. Multicenter and clinical-MRI studies report technically useful segmentation, but vessels, motion, timing after contrast, and punctate lesions remain major error sources \cite{greselin,gadlesion}. A high voxel overlap on selected positive cases is not evidence that a model will behave safely in a population where most scans contain no enhancement.
+
+
+\textbf{2) Spinal, cortical, and susceptibility lesions:} Cord segmentation can reach high geometric agreement because the cord is a relatively continuous structure; intramedullary lesion segmentation is substantially harder because the target is small, contrast varies by level and sequence, and motion and partial volume are prominent \cite{gros2019,benveniste}. A deployable system should separate failure of cord localization from failure of lesion detection and should flag incomplete axial coverage. Cortical-lesion models have benefited from 7-T and specialized contrasts, but performance declines across field strength and institution, especially for intracortical lesions \cite{larosa7t,molchanova}. CVS and PRL systems illustrate the gap between lesion-level classification and end-to-end patient assessment. CVSnet achieved promising results after candidate lesions were selected, while RimNet and QSMRim-Net address specialized susceptibility inputs and severe class imbalance \cite{cvsnet,rimnet,qsmrim}. A clinically credible pipeline must find eligible lesions, reject non-evaluable candidates, aggregate patient-level rules, and test the entire process in a suspected-MS spectrum. Combined automatic segmentation of lesions, veins, and rims is an important direction but remains dependent on acquisition quality and external replication \cite{alpaca,combined_markers}.
+
+
+\textbf{3) Longitudinal monitoring and quantitative measurement:} Detecting new or enlarging lesions is closer to the clinical question of inflammatory activity than segmenting total burden. Direct paired-input networks avoid subtracting two independently thresholded masks, but remain sensitive to registration, intensity drift, slice mismatch, and unavailable priors. MSSEG-2 shows that lesion-wise overlap can be modest even when patient activity categories are clinically useful \cite{msseg2}. Imaging-aware augmentation, large private multiscanner training, and PACS-compatible systems improve robustness, and reader studies suggest that candidates can reduce reporting time or increase activity detection \cite{msseg_aug,kruger,barnett,combes,peters2024,sieber}. These gains are conditional: false positives may transfer time from search to verification, and a previous report is not an adequate substitute for image-level comparison. Brain-volume and tissue segmentation offer another quantitative pathway. Longitudinal volume change requires test--retest stability, bias and limits of agreement, scanner-upgrade analysis, and consistent intracranial-volume handling. High cross-sectional correlation is insufficient, and pseudo-label training can improve consistency while inheriting the reference software's bias \cite{deepbvc,mindglide}.
+
+
+\textbf{4) Diagnosis, phenotyping, and prognosis:} Image classifiers can distinguish established MS from healthy controls or selected mimics, and emerging tools combine CVS, cortical lesions, and PRLs \cite{eitel,rocca,seok,combined_classifier}. The main limitation is not representation capacity but case spectrum. Healthy volunteers often come from a different acquisition source, disease prevalence is artificial, and the model lacks clinical examination, cerebrospinal fluid, serology, and prior probability. Sensitivity and specificity should be measured in consecutive patients referred for suspected inflammatory disease, with calibration and decision curves at clinically relevant thresholds. Prognostic studies use lesion burden, tissue volume, radiomics, or deep features to predict EDSS, cognition, PIRA, and progression \cite{tousignant,storelli,pontillo,denissen,poretto,cagol}. Meta-analytic summaries show heterogeneous discrimination and error, but calibration and independent testing are uncommon \cite{houshi}. Treatment is a time-varying confounder: risk under observed care is not an individual treatment effect. Unsupervised MRI subtypes and latent disease states can be reproducible and biologically informative, as large external replications demonstrate, yet they should not be converted into treatment recommendations without prospective utility evidence \cite{eshaghi,progression_reclass}.
+
+
+Across these tasks, the same architecture can occupy different maturity levels. A U-Net used to prepopulate editable FLAIR contours may be close to routine assistance; the same backbone used to predict five-year disability may be exploratory because the target, censoring, treatment, and calibration are harder. Conversely, a sophisticated Transformer does not confer clinical validity if tested on a small same-center split. Table~\ref{tab:3} is therefore an architectural comparison rather than a readiness ranking. Table~\ref{tab:4} connects outputs to appropriate optimization and measurement, whereas Table~\ref{tab:5} retains a numerical result only when the cohort, case condition, metric, and validation level are traceable in the evidence ledger; incompatible rows are not ranked.
+
+
+\begin{table*}[!t]
+\centering
+\caption{TASK-SPECIFIC TECHNICAL PERFORMANCE AND CLINICAL EVIDENCE}
+\label{tab:5}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{1.10}
+\begin{tabularx}{\textwidth}{@{}ZZZZZZ@{}}
+\toprule
+\textbf{Task and source} & \textbf{Dataset or cohort condition} & \textbf{Reported evaluation} & \textbf{Validation level} & \textbf{Evidence-supported interpretation} & \textbf{Clinical evidence gap} \\
+\midrule
+New-lesion benchmark \cite{msseg2} & 100 paired-FLAIR patients: 40 development and 60 hidden test; 35 hidden-test cases had new lesions & Among 35 positive hidden cases, best expert mean lesion F1 0.679 (SD 0.345) and best submitted method 0.698 (SD 0.295); across the 60-case hidden test, best three-category accuracy was 85\% for both & L2 hidden benchmark with expert comparison & Case classification can be useful while lesion matching remains difficult & Distribution-specific; no prospective workflow or outcome test \\
+MS lesion vs. other WMH \cite{ms3seg} & 100 patients; one 1.5-T scanner; lesions <3 mm excluded & Five-fold internal U-Net Dice: 0.7469 binary and 0.6686 multiclass & L1 internal cross-validation & Demonstrates feasibility for the resource-defined distinction & Single scanner and lesion exclusion preclude transportability claims \\
+Multicontrast cord lesions \cite{benveniste} & 1,849 people; 4,428 annotated MRI images; 23 centers; six contrasts at 1.5/3/7 T & Neuroradiologist Likert comparison favored the proposed model (p < 0.01); a single harmonized segmentation estimate is NR here & L3 retrospective multicenter/external evaluation & Tests contrast, center, level, and resolution heterogeneity & Effect size, prospective correction burden, and patient benefit are NR \\
+Federated brain-lesion segmentation \cite{federated_ms} & Public and in-house multi-client experiments; patient counts and common sequence set NR in the audited record & Case-wise/voxel-wise Dice: 65.20\%/74.30\% (public scenario) and 53.66\%/62.31\% (in-house scenario) & L1 internal multi-client experiments & Shows optimization behavior under decentralized non-IID clients & Not an unseen-center or prospective clinical validation \\
+Routine longitudinal activity \cite{barnett} & 282 patients; 397 scan pairs; principally three scanners/centers & Case-level sensitivity/specificity: AI 93.3\%/97.6\%, standard radiology 58.3\%/98.8\%, core laboratory 85.0\%/96.4\%; stable-protocol subset sensitivity 91.7\% for AI and core laboratory & L3 retrospective real-world validation with human comparators & Supports assistive monitoring under the studied conditions & Consensus adjudication and retrospective design limit autonomous or outcome claims \\
+AI-supported reporting time \cite{peters2024} & Four radiologists; 50 lesion-burden studies and 50 follow-up studies; patient overlap NR & Mean time fell from 286.85 to 196.34 s (burden) and 196.17 to 120.87 s (follow-up) & L4 retrospective crossover reader study & Demonstrates a reader-time effect in the tested workflow & Multicenter generalizability and patient outcomes are NR \\
+Automated serial-reading time \cite{sieber} & 35 consecutive single-site patients; baseline plus three follow-ups & Mean reading time 9.05 min; AI assistance reduced it by 2.83 min & L4 retrospective paired-reader study & Suggests workflow efficiency for serial review & Small single-site study; safety and net benefit remain NR \\
+Year-3 PIRA prediction \cite{poretto} & 719 newly diagnosed patients from three Italian centers; 92 developed year-3 PIRA; structured clinical/radiological variables, not image tensors & Random-forest test AUC 0.75 $\pm$ 0.06 under nested randomized cross-validation & L1 internal nested cross-validation & Supports cohort-level prognostic association under observed care & External calibration, treatment-confounding control, and decision net benefit are NR \\
+Archive-scale quantitative analysis \cite{mindglide} & 4,247 development scans/592 scanners; 14,952 external scans from 1,001 people/186 scanners & Single task-comparable aggregate result: NR & L3 external multiscanner evaluation & Demonstrates evaluation across heterogeneous archives & Patient-count discrepancy and proprietary composition limit reproduction \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\section{Challenges and Future Research}\label{sec:challenges-and-future-research}
+
+\subsection{Data Diversity and Reference Labels}\label{subsec:data-diversity-and-reference-labels}
+
+Public benchmarks are small and geographically concentrated, trial archives are selected, and routine data contain noisy labels and informative missingness. Spinal, cortical, pediatric, progressive, comorbid, and lower-resource populations remain particularly underrepresented. Future resources should report unique patients separately from scans; preserve patient, visit, and site independence; include stable negative examinations; disclose demographics and therapy; and retain hidden scanner-upgrade and external-center test sets. Because reader disagreement concentrates in small or equivocal lesions, a single fused mask should not erase the measurement process. Multirater labels, adjudication rules, probabilistic targets, lesion-size strata, and uncertainty-aware evaluation are needed. Federated learning can broaden institutional participation, but early MS studies also expose unresolved heterogeneity in labels, site contribution, privacy, and update validation \cite{federated_ms,federated_ms2}.
+
+
+\subsection{Domain Shift and Missing Inputs}\label{subsec:domain-shift-and-missing-inputs}
+
+Field strength, vendor, protocol, reconstruction, software upgrades, and preprocessing all alter the input distribution. A model should therefore be stress-tested across prespecified acquisition factors, with input quality gates and explicit abstention. Harmonization or synthesis must preserve lesion count, volume, enhancement, CVS, and PRL; visually plausible output is insufficient. Missing sequences create a related risk: complete-case training selects richer sites, zero filling can reveal site identity, and imputation can manufacture disease signal. Controlled modality dropout, performance for each supported sequence subset, and separate imputation and prediction uncertainty are safer. Longitudinal evaluation must additionally account for variable intervals, treatment timing, relapse, registration quality, and mismatched protocols rather than treating these factors as invisible preprocessing.
+
+
+\subsection{Reliability, Fairness, and Computational Access}\label{subsec:reliability-fairness-and-computational-access}
+
+Reliability requires more than an uncertainty heat map. Calibration, out-of-distribution detection, and abstention should be linked to a defined review action, and the output must distinguish a negative result from an unreliable analysis. Subgroup assessment is essential because sex and demographic imbalance can become classifier bias \cite{gender_bias}. Privacy-preserving training does not automatically produce equitable performance, and site-level aggregates may hide failure in small subgroups. Three-dimensional networks, fine-grained Transformers, ensembles, and foundation models also impose memory, latency, and infrastructure costs that can restrict access. Reports should give accelerator, memory, preprocessing and inference time, failure rate, and supported hardware. Compression or efficient attention should be rechecked for small-lesion sensitivity and calibration; speed without detectable failure is not clinical efficiency.
+
+
+\subsection{Workflow, Regulation, and Lifecycle Governance}\label{subsec:workflow-regulation-and-lifecycle-governance}
+
+Brain white-matter segmentation and longitudinal change detection have the strongest workflow evidence, including retrospective reader studies, but false-positive verification and acquisition matching still determine net time saved \cite{salem,msseg_aug,barnett,combes,peters2024,sieber,mastilovic2025}. Enhancing, spinal, cortical, CVS, and PRL systems more often depend on rare positives, manual candidates, or small external cohorts \cite{greselin,gadlesion,larosa7t,molchanova,cvsnet,rimnet,qsmrim,alpaca}. Outputs should be editable, linked to prior images, and accompanied by provenance and failure flags. Regulatory clearance is specific to a product version, input, and intended use; it does not establish improved relapse or disability outcomes. FDA records rechecked on 29 August 2026 list substantially-equivalent 510(k) decisions for Pixyl.Neuro (K213253), icobrain (K192130), and NeuroQuant (K241098), while the NICE MIB291 page remains a briefing rather than evidence of patient benefit \cite{fda_pixyl,fda_icobrain,fda_neuroquant,nice_mib291}. PACS routing, cybersecurity, local validation, version control, drift monitoring, and a named failure owner are therefore part of the intervention \cite{radiology_workflow,imdrf_samd,imdrf_gmlp}.
+
+
+\subsection{Prospective Validation and Clinically Meaningful Endpoints}\label{subsec:prospective-validation-and-clinically-meaningful-endpoints}
+
+Future studies should begin with the decision, not the architecture. Lesion-monitoring endpoints include actionable new activity, false alerts per stable examination, correction burden, reporting time, and treatment review. Volumetry requires test--retest repeatability, annualized bias, quality-control rejection, and incremental value beyond standard reading. Diagnostic support requires consecutive patients with realistic mimics, calibrated post-test probabilities, and consequences of false decisions. Prognosis requires a prespecified time origin, treatment and censoring handling, external calibration, and decision-curve net benefit. Economic analysis should include integration, maintenance, repeat imaging, false-positive work-up, and downstream treatment rather than minutes saved alone \cite{cheers_ai,sima2021}.
+
+
+A staged validation program follows from these endpoints. Development should use site-diverse data, patient-level splitting, transparent exclusions, multirater references, and locked thresholds. The frozen system should then be tested at institutions absent from training, including negative scans, protocol stress tests, and demographic and disease subgroups; any recalibration requires a subsequent independent sample. Prospective human--AI evaluation should log quality-control rejection, abstention, edits, disagreement, decision change, and downstream consequences. Randomized or stepped-wedge designs are appropriate when the intervention changes workflow. AssistMS exemplifies this direction by targeting disease-activity detection, treatment decisions, reporting time, and health economics, but its outcomes must not be assumed before completion \cite{assistms}.
+
+
+Fig.~\ref{fig:11} organizes acquisition variability into three research planes: robustness (site-held-out evaluation, protocol stress, missing modalities, and failure localization); trust (multirater uncertainty, subgroup audit, abstention, and transparent review); and translation (locked external validation, human--AI evaluation, net benefit, and monitored rollback). Table~\ref{tab:6} records the corresponding gaps. Controlled servers, locked federated containers, executable inference code, and versioned model cards can make claims testable without releasing identifiable MRI. The objective is transportable, monitored clinical benefit rather than another marginal leaderboard gain.
+
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.93\textwidth,height=0.86\textheight,keepaspectratio]{figures/fig11_validation_roadmap.pdf}
+\caption{Domain variability and validation priorities for MS MRI AI. Synthetic FLAIR anatomy illustrates reference-like, low-resolution, intensity-shifted, noisy, motion-degraded, and alternate-protocol inputs; it is not patient data. The three research planes separate robustness tests, trust safeguards, and translation endpoints. The downward arrow denotes increasing clinical consequence, while the individual glyphs specify site-held-out testing, protocol stress, supported missing modalities, failure localization, multirater uncertainty, subgroup audit, abstention, transparent review, locked external validation, human--AI workflow evaluation, net benefit, and governed monitoring or rollback. No empirical performance values are shown.}
+\label{fig:11}
+\end{figure*}
+
+\begin{table*}[!t]
+\centering
+\caption{CHALLENGES, EVIDENCE GAPS, AND RESEARCH PRIORITIES}
+\label{tab:6}
+\scriptsize
+\setlength{\tabcolsep}{2.2pt}
+\renewcommand{\arraystretch}{1.10}
+\begin{tabularx}{\textwidth}{@{}ZZZZZ@{}}
+\toprule
+\textbf{Challenge} & \textbf{Typical evidence gap} & \textbf{Priority action} & \textbf{Validation requirement} & \textbf{Clinical endpoint} \\
+\midrule
+Small or unrepresentative data & Academic, trial, or regional concentration & Consecutive multicenter cohorts & Patient- and site-held-out testing & Subgroup-safe errors \\
+Scanner and protocol shift & Same-ecosystem hold-out & Vendor, field-strength, protocol, and upgrade stress tests & Geographic and temporal external sets & Stable actionable findings \\
+Noisy reference labels & One fused binary mask & Multirater probabilistic reference and adjudication record & Agreement and lesion-size-stratified analysis & Reviewable candidates \\
+Tiny lesions and imbalance & Aggregate Dice only & Lesion-aware sampling and complementary objectives & Negative cases; lesion sensitivity and false positives per scan & Activity detection \\
+Missing or longitudinal inputs & Complete-case or matched protocols & Modality dropout and variable-time models & Every supported sequence subset plus drift analysis & Reliable interval change \\
+Uncertainty and calibration & AUC or Dice without reliability & Calibrated abstention linked to review & External calibration and out-of-distribution tests & Safe manual verification \\
+Privacy and fairness & No subgroup or model-update audit & Federated evaluation and bias monitoring & Site and demographic strata & Equitable performance \\
+Compute and integration & No latency or failure reporting & Efficient models and PACS engineering & End-to-end operational test & Time and correction burden \\
+Clinical utility & Retrospective technical endpoint & Prospective human--AI evaluation & Randomized or stepped-wedge study plus monitoring & Decisions, outcomes, and net benefit \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+\FloatBarrier
+
+\clearpage
+
+\section{Conclusion}\label{sec:conclusion}
+
+AI in MS MRI is closest to clinical assistance for brain-lesion segmentation, quantitative tissue and lesion measurement, and longitudinal detection of new or enlarging lesions, provided that outputs remain editable and are verified by clinicians. Automated enhancing, spinal, cortical, CVS, and PRL analysis has task-specific technical promise but less broadly replicated workflow evidence. Image-only diagnosis, individualized prognosis, generative synthesis, foundation models, and autonomous decision-making remain primarily at technical-validation stage. Their transition should be judged by independent multicenter and prospective human--AI evaluation, not by architecture novelty or internal accuracy alone. The appropriate near-term role of AI is therefore to make measurement and comparison more reproducible while preserving accountable clinical interpretation.
+
+
+\section*{Declarations}\label{sec:declarations}
+
+\textbf{Funding:} [Insert funding statement and grant numbers, or state that no specific funding was received.]
+
+
+\textbf{Conflict of Interest:} [Insert complete author disclosures.]
+
+
+\textbf{Author Contributions:} [Insert CRediT roles for all authors.]
+
+
+\textbf{Data Availability:} No new patient data were created or analyzed for this survey. Dataset identifiers and access conditions are reported in the text and tables.
+
+
+\textbf{Ethics Approval and Consent:} Not applicable to this literature survey.
+
+
+\textbf{AI Assistance Disclosure:} This AI-assisted research draft used generative assistance for literature organization, language editing, and non-patient figure artwork. The human authors must independently verify all evidence, citations, numerical statements, image labels, target-journal policies, and author disclosures before submission.
+
+
+\FloatBarrier
+\clearpage
+\begin{thebibliography}{999}
+\bibitem{mcdonald2024} X. Montalban, C. Lebrun-Frénay, J. Oh et al., "Diagnosis of multiple sclerosis: 2024 revisions of the McDonald criteria," Lancet Neurol., vol. 24, pp. 850--865, 2025, doi:\allowbreak 10.1016/\allowbreak S1474-4422(25)00270-4. PMID:40975101.
+\bibitem{barkhof2024} F. Barkhof, K. K. Koeller, M. Filippi et al., "2024 MAGNIMS-CMSC-NAIMS consensus recommendations on the use of MRI for the diagnosis of multiple sclerosis," Lancet Neurol., vol. 24, pp. 866--879, 2025, doi:\allowbreak 10.1016/\allowbreak S1474-4422(25)00304-7. PMID:40975102.
+\bibitem{magnims2016} M. Filippi et al., "MRI criteria for the diagnosis of multiple sclerosis: MAGNIMS consensus guidelines," Lancet Neurol., vol. 15, pp. 292--303, 2016, doi:\allowbreak 10.1016/\allowbreak S1474-4422(15)00393-2.
+\bibitem{wattjes2021} M. P. Wattjes, O. Ciccarelli, D. S. Reich et al., "2021 MAGNIMS-CMSC-NAIMS consensus recommendations on the use of MRI in patients with multiple sclerosis," Lancet Neurol., vol. 20, pp. 653--670, 2021, doi:\allowbreak 10.1016/\allowbreak S1474-4422(21)00095-8. PMID:34139157.
+\bibitem{diagnosis_meta} R. Darrudi, A. Hosseini, H. Emami et al., "Artificial intelligence in the diagnosis of multiple sclerosis using brain imaging modalities: a systematic review and meta-analysis of algorithms," Medicine (Baltimore), vol. 104, art. e44493, 2025, doi:\allowbreak 10.1097/\allowbreak MD.0000000000044493. PMID:40988216.
+\bibitem{dl_systematic} P. Belwal and S. Singh, "Deep learning techniques to detect and analysis of multiple sclerosis through MRI: A systematic literature review," Comput. Biol. Med., vol. 185, art. 109530, 2025, doi:\allowbreak 10.1016/\allowbreak j.compbiomed.2024.109530. PMID:39693692.
+\bibitem{claim2024} A. S. Tejani, M. E. Klontzas, A. A. Gatti et al., "Checklist for Artificial Intelligence in Medical Imaging (CLAIM): 2024 update," Radiol. Artif. Intell., vol. 6, art. e240300, 2024, doi:\allowbreak 10.1148/\allowbreak ryai.240300. PMID:38809149.
+\bibitem{tripod_ai} G. S. Collins, K. G. M. Moons, P. Dhiman et al., "TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods," BMJ, vol. 385, art. e078378, 2024, doi:\allowbreak 10.1136/\allowbreak bmj-2023-078378. PMID:38626948.
+\bibitem{probast_ai} K. G. M. Moons, J. A. A. Damen, T. Kaul et al., "PROBAST+AI: an updated quality, risk of bias, and applicability assessment tool for prediction models using regression or artificial intelligence methods," BMJ, vol. 388, art. e082505, 2025, doi:\allowbreak 10.1136/\allowbreak bmj-2024-082505. PMID:40127903.
+\bibitem{stard_ai} V. Sounderajah, A. Guni, X. Liu et al., "The STARD-AI reporting guideline for diagnostic accuracy studies using artificial intelligence," Nat. Med., vol. 31, no. 10, pp. 3283--3289, 2025, doi:\allowbreak 10.1038/\allowbreak s41591-025-03953-8.
+\bibitem{decide_ai} B. Vasey, M. Nagendran, B. Campbell et al., "Reporting guideline for the early-stage clinical evaluation of decision support systems driven by artificial intelligence: DECIDE-AI," Nat. Med., vol. 28, pp. 924--933, 2022, doi:\allowbreak 10.1038/\allowbreak s41591-022-01772-9. PMID:35585198.
+\bibitem{future_ai} K. Lekadir, A. F. Frangi, A. R. Porras et al., "FUTURE-AI: international consensus guideline for trustworthy and deployable artificial intelligence in healthcare," BMJ, vol. 388, art. e081554, 2025, doi:\allowbreak 10.1136/\allowbreak bmj-2024-081554. PMID:39909534.
+\bibitem{filippi2019} M. Filippi et al., "Assessment of lesions on magnetic resonance imaging in multiple sclerosis: practical guidelines," Brain, vol. 142, pp. 1858--1875, 2019, doi:\allowbreak 10.1093/\allowbreak brain/\allowbreak awz144.
+\bibitem{sati2016} P. Sati et al., "The central vein sign and its clinical evaluation for the diagnosis of multiple sclerosis: a consensus statement," Nat. Rev. Neurol., vol. 12, pp. 714--722, 2016, doi:\allowbreak 10.1038/\allowbreak nrneurol.2016.166.
+\bibitem{bagnato2024} F. Bagnato et al., "Imaging chronic active lesions in multiple sclerosis: a consensus statement," Brain, vol. 147, pp. 2913--2933, 2024, doi:\allowbreak 10.1093/\allowbreak brain/\allowbreak awae013.
+\bibitem{absinta2016} M. Absinta et al., "Persistent 7-tesla phase rim predicts poor outcome in new multiple sclerosis patient lesions," J. Clin. Invest., vol. 126, pp. 2597--2609, 2016, doi:\allowbreak 10.1172/\allowbreak JCI86198.
+\bibitem{deepharmony} B. E. Dewey, C. Zhao, J. C. Reinhold et al., "DeepHarmony: a deep learning approach to contrast harmonization across scanner changes," Magn. Reson. Imaging, vol. 64, pp. 160--170, 2019, doi:\allowbreak 10.1016/\allowbreak j.mri.2019.05.041. PMID:31301354.
+\bibitem{haca3} L. Zuo, B. E. Dewey, A. Carass et al., "HACA3: a unified approach for multi-site MR image harmonization," Comput. Med. Imaging Graph., vol. 109, art. 102285, 2023, doi:\allowbreak 10.1016/\allowbreak j.compmedimag.2023.102285. PMID:37657151.
+\bibitem{giraldo} D. L. Giraldo et al., "Perceptual super-resolution in multiple sclerosis MRI," Front. Neurosci., vol. 18, art. 1473132, 2024, doi:\allowbreak 10.3389/\allowbreak fnins.2024.1473132. PMID:39502711.
+\bibitem{carass2017} A. Carass, S. Roy, A. Jog et al., "Longitudinal multiple sclerosis lesion segmentation: resource and challenge," NeuroImage, vol. 148, pp. 77--102, 2017, doi:\allowbreak 10.1016/\allowbreak j.neuroimage.2016.12.064.
+\bibitem{carass_data} A. Carass, S. Roy, A. Jog et al., "Longitudinal multiple sclerosis lesion segmentation data resource," Data Brief, vol. 12, pp. 346--350, 2017, doi:\allowbreak 10.1016/\allowbreak j.dib.2017.04.004. PMID:28491937.
+\bibitem{msseg_descriptor} O. Commowick, A. Istace, M. Kain et al., "Multiple sclerosis lesions segmentation from multiple experts: the MICCAI 2016 challenge dataset," NeuroImage, vol. 244, art. 118589, 2021, doi:\allowbreak 10.1016/\allowbreak j.neuroimage.2021.118589. PMID:34563682.
+\bibitem{msseg_challenge} O. Commowick, F. Cervenansky, F. Cotton, and M. Dojat, "Objective evaluation of multiple sclerosis lesion segmentation using a data management and processing infrastructure," Sci. Rep., vol. 8, art. 13650, 2018, doi:\allowbreak 10.1038/\allowbreak s41598-018-31911-7. PMID:30209345.
+\bibitem{msseg2} A. Masson et al., "Performances of experts and automated methods on new multiple sclerosis lesions detection: Insights from the MSSeg2 challenge," Sci. Rep., vol. 16, art. 23247, 2026, doi:\allowbreak 10.1038/\allowbreak s41598-026-52150-1. PMID:42168373.
+\bibitem{lesjak3d} Ž. Lesjak, A. Galimzianova, A. Koren et al., "A novel public MR image dataset of multiple sclerosis patients with lesion segmentations based on multi-rater consensus," Neuroinformatics, vol. 16, pp. 51--63, 2018, doi:\allowbreak 10.1007/\allowbreak s12021-017-9348-7. PMID:29103086.
+\bibitem{lesjaklong} Ž. Lesjak, Ž. Špiclin et al., "Validation of white-matter lesion change detection methods on a novel publicly available MRI image database," Neuroinformatics, vol. 14, pp. 403--420, 2016, doi:\allowbreak 10.1007/\allowbreak s12021-016-9301-1. PMID:27207310.
+\bibitem{mslesseg} F. Guarnera, A. Rondinella, E. Crispino et al., "MSLesSeg: Baseline and benchmarking of a new multiple sclerosis lesion segmentation dataset," Sci. Data, vol. 12, art. 920, 2025, doi:\allowbreak 10.1038/\allowbreak s41597-025-05250-y. PMID:40450079.
+\bibitem{msbaghdad} A. M. Muslim, S. Mashohor, G. Al Gawwam et al., "Brain MRI dataset of multiple sclerosis with consensus manual lesion segmentation and patient meta information," Data Brief, vol. 42, art. 108139, 2022, doi:\allowbreak 10.1016/\allowbreak j.dib.2022.108139. PMID:35496484.
+\bibitem{sibbms} A. Tuchinov et al., "SibBMS: Siberian brain multiple sclerosis dataset with lesion segmentation and patient meta information," Mach. Learn. Biomed. Imaging, vol. 3, pp. 905--912, 2025, doi:\allowbreak 10.59275/\allowbreak j.melba.2025-f798.
+\bibitem{ms3seg} M. B. Bawil, M. Shamsi, A. Ghalehasadi, A. F. Jafargholkhanloo, and A. S. Bavil, "A multiple sclerosis MRI dataset with tri-mask annotations for lesion segmentation," Sci. Data, vol. 13, art. 867, 2026, doi:\allowbreak 10.1038/\allowbreak s41597-026-07184-5. PMID:41980977.
+\bibitem{pedims} M. Popa, G. A. Vișa, and C. R. Șofariu, "PediMS: A pediatric multiple sclerosis lesion segmentation dataset," Sci. Data, vol. 12, art. 1184, 2025, doi:\allowbreak 10.1038/\allowbreak s41597-025-05346-5. PMID:40640191.
+\bibitem{shifts2} A. Malinin, N. Band, Y. Gal et al., "Shifts 2.0: Extending the dataset real distributional shift benchmark," in Proc. NeurIPS Datasets Benchmarks, 2022, arXiv:2206.15407, dataset doi:\allowbreak 10.5281/\allowbreak zenodo.7051658.
+\bibitem{gros2019} C. Gros, B. De Leener, A. Badji et al., "Automatic segmentation of the spinal cord and intramedullary multiple sclerosis lesions with convolutional neural networks," NeuroImage, vol. 184, pp. 901--915, 2019, doi:\allowbreak 10.1016/\allowbreak j.neuroimage.2018.09.081. PMID:30300751.
+\bibitem{benveniste} P.-L. Benveniste et al., "Generalizable spinal cord multiple sclerosis lesion segmentation across MRI contrasts, protocols, and centers," Mult. Scler., vol. 32, no. 6, pp. 598--613, 2026, doi:\allowbreak 10.1177/\allowbreak 13524585261427333. PMID:42028790.
+\bibitem{smsc} G. Disanto, P. Benkert, J. Lorscheider et al., "The Swiss Multiple Sclerosis Cohort-Study (SMSC): a prospective Swiss wide investigation of key phases in disease evolution and new treatment options," PLoS One, vol. 11, art. e0152347, 2016, doi:\allowbreak 10.1371/\allowbreak journal.pone.0152347.
+\bibitem{ofsep} S. Vukusic, R. Casey, F. Rollot et al., "Observatoire Français de la Sclérose en Plaques (OFSEP): a unique multimodal nationwide MS registry in France," Mult. Scler., vol. 26, pp. 118--122, 2020, doi:\allowbreak 10.1177/\allowbreak 1352458518815602.
+\bibitem{ofsep_protocol} A. Cotton et al., "OFSEP, a nationwide cohort of people with multiple sclerosis: Consensus minimal MRI protocol," J. Neuroradiol., vol. 42, no. 3, pp. 133--140, 2015, doi:\allowbreak 10.1016/\allowbreak j.neurad.2014.12.001.
+\bibitem{mspaths} E. M. Mowry, R. A. Bermel, J. R. Williams et al., "Harnessing real-world data to inform decision-making: Multiple Sclerosis Partners Advancing Technology and Health Solutions (MS PATHS)," Front. Neurol., vol. 11, art. 632, 2020, doi:\allowbreak 10.3389/\allowbreak fneur.2020.00632. PMID:32849170.
+\bibitem{naims7t} D. M. Harrison et al., "Pooled analysis of multiple sclerosis findings on multisite 7 Tesla MRI: Protocol and initial observations," Hum. Brain Mapp., vol. 45, no. 12, art. e26816, 2024, doi:\allowbreak 10.1002/\allowbreak hbm.26816. PMID:39169546.
+\bibitem{mindglide} R. Goebl et al., "Enabling new insights from old scans by repurposing clinical MRI archives for multiple sclerosis research," Nat. Commun., vol. 16, art. 3149, 2025, doi:\allowbreak 10.1038/\allowbreak s41467-025-58274-8. PMID:40195318.
+\bibitem{deepmedic} K. Kamnitsas et al., "Efficient multi-scale 3D CNN with fully connected CRF for accurate brain lesion segmentation," Med. Image Anal., vol. 36, pp. 61--78, 2017, doi:\allowbreak 10.1016/\allowbreak j.media.2016.10.004.
+\bibitem{gabr} R. E. Gabr, I. Coronado, M. Robinson et al., "Brain and lesion segmentation in multiple sclerosis using fully convolutional neural networks: a large-scale study," Mult. Scler., vol. 26, pp. 1217--1226, 2020, doi:\allowbreak 10.1177/\allowbreak 1352458519856843. PMID:31190607.
+\bibitem{mckinley} R. McKinley et al., "Simultaneous lesion and brain segmentation in multiple sclerosis using deep neural networks," Sci. Rep., vol. 11, art. 1087, 2021, doi:\allowbreak 10.1038/\allowbreak s41598-020-79925-4.
+\bibitem{multiarm} A. P. Krishnan, Z. Song, D. Clayton et al., "Multi-arm U-Net with dense input and skip connectivity for T2 lesion segmentation in clinical trials of multiple sclerosis," Sci. Rep., vol. 13, art. 4102, 2023, doi:\allowbreak 10.1038/\allowbreak s41598-023-31207-5. PMID:36914715.
+\bibitem{unet} O. Ronneberger, P. Fischer, and T. Brox, "U-Net: convolutional networks for biomedical image segmentation," in Proc. MICCAI, 2015, pp. 234--241, doi:\allowbreak 10.1007/\allowbreak 978-3-319-24574-4\_28.
+\bibitem{chaves} H. Chaves et al., "Assessing robustness and generalization of a deep neural network for brain MS lesion segmentation on real-world data," Eur. Radiol., vol. 34, no. 3, pp. 2024--2035, 2024, doi:\allowbreak 10.1007/\allowbreak s00330-023-10093-5. PMID:37650967.
+\bibitem{unet3d} Ö. Çiçek, A. Abdulkadir, S. S. Lienkamp, T. Brox, and O. Ronneberger, "3D U-Net: learning dense volumetric segmentation from sparse annotation," in Proc. MICCAI, 2016, pp. 424--432, doi:\allowbreak 10.1007/\allowbreak 978-3-319-46723-8\_49.
+\bibitem{resnet} K. He, X. Zhang, S. Ren, and J. Sun, "Deep residual learning for image recognition," in Proc. IEEE CVPR, 2016, pp. 770--778, doi:\allowbreak 10.1109/\allowbreak CVPR.2016.90.
+\bibitem{vnet} F. Milletari, N. Navab, and S.-A. Ahmadi, "V-Net: fully convolutional neural networks for volumetric medical image segmentation," in Proc. 3DV, 2016, pp. 565--571, doi:\allowbreak 10.1109/\allowbreak 3DV.2016.79.
+\bibitem{r2unet} M. Z. Alom, C. Yakopcic, M. Hasan, T. M. Taha, and V. K. Asari, "Recurrent residual U-Net for medical image segmentation," J. Med. Imaging, vol. 6, art. 014006, 2019, doi:\allowbreak 10.1117/\allowbreak 1.JMI.6.1.014006.
+\bibitem{densenet} G. Huang, Z. Liu, L. van der Maaten, and K. Q. Weinberger, "Densely connected convolutional networks," in Proc. IEEE CVPR, 2017, pp. 4700--4708, doi:\allowbreak 10.1109/\allowbreak CVPR.2017.243.
+\bibitem{hdenseunet} X. Li et al., "H-DenseUNet: hybrid densely connected UNet for liver and tumor segmentation from CT volumes," IEEE Trans. Med. Imaging, vol. 37, pp. 2663--2674, 2018, doi:\allowbreak 10.1109/\allowbreak TMI.2018.2845918.
+\bibitem{attentionunet} O. Oktay et al., "Attention U-Net: learning where to look for the pancreas," arXiv:1804.03999, 2018.
+\bibitem{nnunet} F. Isensee, P. F. Jaeger, S. A. A. Kohl, J. Petersen, and K. H. Maier-Hein, "nnU-Net: a self-configuring method for deep learning-based biomedical image segmentation," Nat. Methods, vol. 18, pp. 203--211, 2021, doi:\allowbreak 10.1038/\allowbreak s41592-020-01008-z.
+\bibitem{unrolling} V. Monga, Y. Li, and Y. C. Eldar, "Algorithm unrolling: interpretable, efficient deep learning for signal and image processing," IEEE Signal Process. Mag., vol. 38, pp. 18--44, 2021, doi:\allowbreak 10.1109/\allowbreak MSP.2020.3016905.
+\bibitem{modl} H. K. Aggarwal, M. P. Mani, and M. Jacob, "MoDL: model-based deep learning architecture for inverse problems," IEEE Trans. Med. Imaging, vol. 38, pp. 394--405, 2019, doi:\allowbreak 10.1109/\allowbreak TMI.2018.2865356.
+\bibitem{varnet} A. Sriram et al., "End-to-end variational networks for accelerated MRI reconstruction," in Proc. MICCAI, 2020, pp. 64--73, doi:\allowbreak 10.1007/\allowbreak 978-3-030-59713-9\_7.
+\bibitem{vit} A. Dosovitskiy et al., "An image is worth 16$\times$16 words: transformers for image recognition at scale," in Proc. ICLR, 2021, arXiv:2010.11929.
+\bibitem{swin} Z. Liu et al., "Swin Transformer: hierarchical vision transformer using shifted windows," in Proc. IEEE ICCV, 2021, pp. 10012--10022, doi:\allowbreak 10.1109/\allowbreak ICCV48922.2021.00986.
+\bibitem{swin_ssl} Y. Tang et al., "Self-supervised pre-training of Swin Transformers for 3D medical image analysis," in Proc. IEEE CVPR, 2022, pp. 20730--20740.
+\bibitem{unetr} A. Hatamizadeh et al., "UNETR: transformers for 3D medical image segmentation," in Proc. IEEE WACV, 2022, pp. 574--584, doi:\allowbreak 10.1109/\allowbreak WACV51458.2022.00181.
+\bibitem{transunet} J. Chen et al., "TransUNet: rethinking the U-Net architecture design for medical image segmentation through the lens of transformers," Med. Image Anal., vol. 97, art. 103280, 2024, doi:\allowbreak 10.1016/\allowbreak j.media.2024.103280.
+\bibitem{cotr} Y. Xie, J. Zhang, C. Shen, and Y. Xia, "CoTr: efficiently bridging CNN and Transformer for 3D medical image segmentation," in Proc. MICCAI, 2021, pp. 171--180, arXiv:2103.03024.
+\bibitem{vae} D. P. Kingma and M. Welling, "Auto-encoding variational Bayes," in Proc. ICLR, 2014, arXiv:1312.6114.
+\bibitem{gan} I. J. Goodfellow et al., "Generative adversarial nets," in Proc. NeurIPS, 2014, pp. 2672--2680.
+\bibitem{pix2pix} P. Isola, J.-Y. Zhu, T. Zhou, and A. A. Efros, "Image-to-image translation with conditional adversarial networks," in Proc. IEEE CVPR, 2017, pp. 5967--5976, doi:\allowbreak 10.1109/\allowbreak CVPR.2017.632.
+\bibitem{cyclegan} J.-Y. Zhu, T. Park, P. Isola, and A. A. Efros, "Unpaired image-to-image translation using cycle-consistent adversarial networks," in Proc. IEEE ICCV, 2017, pp. 2242--2251, doi:\allowbreak 10.1109/\allowbreak ICCV.2017.244.
+\bibitem{ddpm} J. Ho, A. Jain, and P. Abbeel, "Denoising diffusion probabilistic models," in Proc. NeurIPS, 2020, pp. 6840--6851.
+\bibitem{scoresde} Y. Song et al., "Score-based generative modeling through stochastic differential equations," in Proc. ICLR, 2021.
+\bibitem{s4} A. Gu, K. Goel, and C. Ré, "Efficiently modeling long sequences with structured state spaces," in Proc. ICLR, 2022.
+\bibitem{mamba} A. Gu and T. Dao, "Mamba: linear-time sequence modeling with selective state spaces," in Proc. COLM, 2024.
+\bibitem{segmamba} Z. Xing et al., "SegMamba: long-range sequential modeling Mamba for 3D medical image segmentation," in Proc. MICCAI, 2024, pp. 578--588, doi:\allowbreak 10.1007/\allowbreak 978-3-031-72111-3\_54.
+\bibitem{swinumamba} J. Liu et al., "Swin-UMamba: adapting Mamba-based vision foundation models for medical image segmentation," IEEE Trans. Med. Imaging, vol. 44, pp. 3898--3908, 2025, doi:\allowbreak 10.1109/\allowbreak TMI.2024.3508698.
+\bibitem{gessert} N. Gessert, J. Krüger, R. Opfer, A. Ostwaldt, P. Manogaran, and A. Schlaefer, "Multiple sclerosis lesion activity segmentation with attention-guided two-path CNNs," Comput. Med. Imaging Graph., vol. 84, art. 101772, 2020, doi:\allowbreak 10.1016/\allowbreak j.compmedimag.2020.101772.
+\bibitem{kruger} J. Krüger et al., "Fully automated longitudinal segmentation of new or enlarged multiple sclerosis lesions using 3D convolutional neural networks," NeuroImage Clin., vol. 28, art. 102445, 2020, doi:\allowbreak 10.1016/\allowbreak j.nicl.2020.102445.
+\bibitem{kamraoui} R. A. Kamraoui, B. Mansencal, J. V. Manjón, and P. Coupé, "Longitudinal detection of new MS lesions using deep learning," Front. Neuroimaging, vol. 1, art. 948235, 2022, doi:\allowbreak 10.3389/\allowbreak fnimg.2022.948235.
+\bibitem{to2021} M.-S. To et al., "Self-supervised lesion change detection and localisation in longitudinal multiple sclerosis brain imaging," in Proc. MICCAI, 2021, pp. 670--680, doi:\allowbreak 10.1007/\allowbreak 978-3-030-87234-2\_63.
+\bibitem{sharrad} D. F. Sharrad et al., "Defining progression independent of relapse activity (PIRA) in adult patients with relapsing multiple sclerosis: A systematic review," Mult. Scler. Relat. Disord., vol. 78, art. 104899, 2023, doi:\allowbreak 10.1016/\allowbreak j.msard.2023.104899. PMID:37499338.
+\bibitem{msbase_pira} J. Müller, S. Sharmin, J. Lorscheider et al., "Standardized definition of progression independent of relapse activity (PIRA) in relapsing-remitting multiple sclerosis," JAMA Neurol., vol. 82, pp. 614--625, 2025, doi:\allowbreak 10.1001/\allowbreak jamaneurol.2025.0495. PMID:40227706.
+\bibitem{modelsgenesis} Z. Zhou et al., "Models Genesis," Med. Image Anal., vol. 67, art. 101840, 2021, doi:\allowbreak 10.1016/\allowbreak j.media.2020.101840.
+\bibitem{simclr} T. Chen, S. Kornblith, M. Norouzi, and G. Hinton, "A simple framework for contrastive learning of visual representations," in Proc. ICML, vol. 119, 2020, pp. 1597--1607.
+\bibitem{moco} K. He, H. Fan, Y. Wu, S. Xie, and R. Girshick, "Momentum contrast for unsupervised visual representation learning," in Proc. IEEE CVPR, 2020, pp. 9729--9738, doi:\allowbreak 10.1109/\allowbreak CVPR42600.2020.00975.
+\bibitem{mae} K. He et al., "Masked autoencoders are scalable vision learners," in Proc. IEEE CVPR, 2022, pp. 16000--16009, doi:\allowbreak 10.1109/\allowbreak CVPR52688.2022.01553.
+\bibitem{dino} M. Caron et al., "Emerging properties in self-supervised vision transformers," in Proc. IEEE ICCV, 2021, pp. 9650--9660, doi:\allowbreak 10.1109/\allowbreak ICCV48922.2021.00951.
+\bibitem{sam} A. Kirillov et al., "Segment anything," in Proc. IEEE ICCV, 2023, pp. 4015--4026, doi:\allowbreak 10.1109/\allowbreak ICCV51070.2023.00371.
+\bibitem{medsam} J. Ma et al., "Segment anything in medical images," Nat. Commun., vol. 15, art. 654, 2024, doi:\allowbreak 10.1038/\allowbreak s41467-024-44824-z.
+\bibitem{gdl} C. H. Sudre, W. Li, T. Vercauteren, S. Ourselin, and M. J. Cardoso, "Generalised Dice overlap as a deep learning loss function for highly unbalanced segmentations," in Proc. DLMIA/\allowbreak ML-CDS, 2017, pp. 240--248, doi:\allowbreak 10.1007/\allowbreak 978-3-319-67558-9\_28.
+\bibitem{tversky} S. S. M. Salehi, D. Erdogmus, and A. Gholipour, "Tversky loss function for image segmentation using 3D fully convolutional deep networks," in Proc. MLMI, 2017, pp. 379--387, doi:\allowbreak 10.1007/\allowbreak 978-3-319-67389-9\_44.
+\bibitem{focal} T.-Y. Lin, P. Goyal, R. Girshick, K. He, and P. Dollár, "Focal loss for dense object detection," in Proc. IEEE ICCV, 2017, pp. 2999--3007, doi:\allowbreak 10.1109/\allowbreak ICCV.2017.324.
+\bibitem{boundaryloss} H. Kervadec, J. Bouchtiba, C. Desrosiers, É. Granger, J. Dolz, and I. B. Ayed, "Boundary loss for highly unbalanced segmentation," Med. Image Anal., vol. 67, art. 101851, 2021, doi:\allowbreak 10.1016/\allowbreak j.media.2020.101851.
+\bibitem{hausdorffloss} D. Karimi and S. E. Salcudean, "Reducing the Hausdorff distance in medical image segmentation with convolutional neural networks," IEEE Trans. Med. Imaging, vol. 39, pp. 499--513, 2020, doi:\allowbreak 10.1109/\allowbreak TMI.2019.2930068.
+\bibitem{mean_teacher} A. Tarvainen and H. Valpola, "Mean teachers are better role models: weight-averaged consistency targets improve semi-supervised deep learning results," in Proc. NeurIPS, 2017, pp. 1195--1204.
+\bibitem{cox} D. R. Cox, "Regression models and life-tables," J. R. Stat. Soc. B, vol. 34, pp. 187--202, 1972, doi:\allowbreak 10.1111/\allowbreak j.2517-6161.1972.tb00899.x.
+\bibitem{deepsurv} J. L. Katzman et al., "DeepSurv: personalized treatment recommender system using a Cox proportional hazards deep neural network," BMC Med. Res. Methodol., vol. 18, art. 24, 2018, doi:\allowbreak 10.1186/\allowbreak s12874-018-0482-1.
+\bibitem{deephit} C. Lee, W. R. Zame, J. Yoon, and M. van der Schaar, "DeepHit: a deep learning approach to survival analysis with competing risks," in Proc. AAAI, vol. 32, 2018, doi:\allowbreak 10.1609/\allowbreak aaai.v32i1.11842.
+\bibitem{calibration} B. Van Calster et al., "Calibration: the Achilles heel of predictive analytics," BMC Med., vol. 17, art. 230, 2019, doi:\allowbreak 10.1186/\allowbreak s12916-019-1466-7.
+\bibitem{decisioncurve} A. J. Vickers and E. B. Elkin, "Decision curve analysis: a novel method for evaluating prediction models," Med. Decis. Making, vol. 26, pp. 565--574, 2006, doi:\allowbreak 10.1177/\allowbreak 0272989X06295361.
+\bibitem{nair_uncertainty} T. Nair, D. Precup, D. L. Arnold, and T. Arbel, "Exploring uncertainty measures in deep networks for multiple sclerosis lesion detection and segmentation," Med. Image Anal., vol. 59, art. 101557, 2020, doi:\allowbreak 10.1016/\allowbreak j.media.2019.101557.
+\bibitem{mehrtash_calibration} A. Mehrtash et al., "Confidence calibration and predictive uncertainty estimation for deep medical image segmentation," IEEE Trans. Med. Imaging, vol. 39, pp. 3868--3878, 2020, doi:\allowbreak 10.1109/\allowbreak TMI.2020.3006437.
+\bibitem{marten_ood} G. Mårtensson et al., "The reliability of a deep learning model in clinical out-of-distribution MRI data," Med. Image Anal., vol. 66, art. 101714, 2020, doi:\allowbreak 10.1016/\allowbreak j.media.2020.101714.
+\bibitem{cerri} S. Cerri, O. Puonti, D. S. Meier et al., "A contrast-adaptive method for simultaneous whole-brain and lesion segmentation in multiple sclerosis," NeuroImage, vol. 225, art. 117471, 2021, doi:\allowbreak 10.1016/\allowbreak j.neuroimage.2020.117471. PMID:33099007.
+\bibitem{bianca} G. Gentile et al., "BIANCA-MS: An optimized tool for automated multiple sclerosis lesion segmentation," Hum. Brain Mapp., vol. 44, no. 14, pp. 4893--4913, 2023, doi:\allowbreak 10.1002/\allowbreak hbm.26424. PMID:37530598.
+\bibitem{miclaim} B. Norgeot et al., "Minimum information about clinical artificial intelligence modeling: the MI-CLAIM checklist," Nat. Med., vol. 26, pp. 1320--1324, 2020, doi:\allowbreak 10.1038/\allowbreak s41591-020-1041-y.
+\bibitem{algorithm_audit} X. Liu et al., "The medical algorithmic audit," Lancet Digit. Health, vol. 4, pp. e384--e397, 2022, doi:\allowbreak 10.1016/\allowbreak S2589-7500(22)00003-6.
+\bibitem{greselin} P. Greselin et al., "Contrast-enhancing lesion segmentation in multiple sclerosis: A deep learning approach validated in a multicentric cohort," Bioengineering, vol. 11, no. 8, art. 858, 2024, doi:\allowbreak 10.3390/\allowbreak bioengineering11080858. PMID:39199815.
+\bibitem{gadlesion} S. Gaj, D. Ontaneda, and K. Nakamura, "Automatic segmentation of gadolinium-enhancing lesions in multiple sclerosis using deep learning from clinical MRI," PLoS One, vol. 16, art. e0255939, 2021, doi:\allowbreak 10.1371/\allowbreak journal.pone.0255939.
+\bibitem{larosa7t} F. La Rosa et al., "Multiple sclerosis cortical lesion detection with deep learning at ultra-high-field MRI," NMR Biomed., vol. 35, no. 8, art. e4730, 2022, doi:\allowbreak 10.1002/\allowbreak nbm.4730. PMID:35297114.
+\bibitem{molchanova} N. Molchanova et al., "A comparative study of deep learning for cortical lesion MRI segmentation with explainability analysis in multiple sclerosis," NeuroImage Clin., vol. 50, art. 104007, 2026, doi:\allowbreak 10.1016/\allowbreak j.nicl.2026.104007. PMID:42224860.
+\bibitem{cvsnet} P. Maggi, M. J. Fartaria, J. Jorge et al., "CVSnet: a machine learning approach for automated central vein sign assessment in multiple sclerosis," NMR Biomed., vol. 33, art. e4283, 2020, doi:\allowbreak 10.1002/\allowbreak nbm.4283.
+\bibitem{rimnet} G. Barquero, F. La Rosa, H. Kebiri et al., "RimNet: a deep 3D multimodal MRI architecture for paramagnetic rim lesion assessment in multiple sclerosis," NeuroImage Clin., vol. 28, art. 102412, 2020, doi:\allowbreak 10.1016/\allowbreak j.nicl.2020.102412. PMID:32961401.
+\bibitem{qsmrim} H. Zhang, T. D. Nguyen, J. Zhang et al., "QSMRim-Net: imbalance-aware learning for identification of chronic active multiple sclerosis lesions on quantitative susceptibility maps," NeuroImage Clin., vol. 34, art. 102979, 2022, doi:\allowbreak 10.1016/\allowbreak j.nicl.2022.102979. PMID:35247730.
+\bibitem{alpaca} F. Hu, Z. Ren, L. Chen et al., "Automated segmentation of multiple sclerosis lesions, paramagnetic rims, and central vein sign on MRI provides reliable diagnostic biomarkers," Imaging Neurosci., vol. 3, art. IMAG.a.932, 2025, doi:\allowbreak 10.1162/\allowbreak IMAG.a.932. PMID:41089191.
+\bibitem{combined_markers} S. Borrelli, M. S. Martire, A. Stölting et al., "Central vein sign, cortical lesions, and paramagnetic rim lesions for the diagnostic and prognostic workup of multiple sclerosis," Neurol Neuroimmunol Neuroinflamm, vol. 11, art. e200253, 2024, doi:\allowbreak 10.1212/\allowbreak NXI.0000000000200253. PMID:38788180.
+\bibitem{msseg_aug} B. D. Basaran, P. M. Matthews, and W. Bai, "New lesion segmentation for multiple sclerosis brain images with imaging- and lesion-aware augmentation," Front. Neurosci., vol. 16, art. 1007453, 2022, doi:\allowbreak 10.3389/\allowbreak fnins.2022.1007453. PMID:36340756.
+\bibitem{barnett} M. H. Barnett et al., "A real-world clinical validation for AI-based MRI monitoring in multiple sclerosis," npj Digit. Med., vol. 6, art. 196, 2023, doi:\allowbreak 10.1038/\allowbreak s41746-023-00940-6. PMID:37857813.
+\bibitem{combes} B. Combès et al., "A clinically-compatible workflow for computer-aided assessment of brain disease activity in multiple sclerosis patients," Front. Med., vol. 8, art. 740248, 2021, doi:\allowbreak 10.3389/\allowbreak fmed.2021.740248.
+\bibitem{peters2024} S. Peters, G. Kellermann, J. Watkinson et al., "AI supported detection of cerebral multiple sclerosis lesions decreases radiologic reporting times," Eur. J. Radiol., vol. 178, art. 111638, 2024, doi:\allowbreak 10.1016/\allowbreak j.ejrad.2024.111638. PMID:39067268.
+\bibitem{sieber} V. Sieber et al., "Automated assessment of brain MRIs in multiple sclerosis patients significantly reduces reading time," Neuroradiology, vol. 66, pp. 2171--2176, 2024, doi:\allowbreak 10.1007/\allowbreak s00234-024-03497-7. PMID:39514032.
+\bibitem{deepbvc} G. Zhan, D. Wang, M. Cabezas et al., "Learning from pseudo-labels: deep networks improve consistency in longitudinal brain volume estimation," Front. Neurosci., vol. 17, art. 1196087, 2023, doi:\allowbreak 10.3389/\allowbreak fnins.2023.1196087. PMID:37483345.
+\bibitem{eitel} F. Eitel, E. Soehler, J. Bellmann-Strobl et al., "Uncovering convolutional neural network decisions for diagnosing multiple sclerosis on conventional MRI using layer-wise relevance propagation," NeuroImage Clin., vol. 24, art. 102003, 2019, doi:\allowbreak 10.1016/\allowbreak j.nicl.2019.102003.
+\bibitem{rocca} M. A. Rocca, N. Anzalone, L. Storelli et al., "Deep learning on conventional magnetic resonance imaging improves the diagnosis of multiple sclerosis mimics," Invest. Radiol., vol. 56, pp. 252--260, 2021, doi:\allowbreak 10.1097/\allowbreak RLI.0000000000000735. PMID:33109920.
+\bibitem{seok} J. M. Seok et al., "Differentiation between multiple sclerosis and neuromyelitis optica spectrum disorder using a deep learning model," Sci. Rep., vol. 13, art. 11625, 2023, doi:\allowbreak 10.1038/\allowbreak s41598-023-38271-x. PMID:37468553.
+\bibitem{combined_classifier} M. Wynen, C. Vanden Bulcke, S. Borrelli et al., "Machine learning-based combination of the central vein sign, cortical lesions and paramagnetic rim lesions: a web-based tool for the diagnosis of multiple sclerosis," Brain Commun., vol. 8, art. fcag079, 2026, doi:\allowbreak 10.1093/\allowbreak braincomms/\allowbreak fcag079. PMID:41884595.
+\bibitem{tousignant} A. Tousignant et al., "Prediction of disease progression in multiple sclerosis patients using deep learning analysis of MRI data," Proc. Mach. Learn. Res., vol. 102, pp. 483--492, 2019.
+\bibitem{storelli} L. Storelli et al., "A deep learning approach to predicting disease progression in multiple sclerosis using magnetic resonance imaging," Invest. Radiol., vol. 57, no. 7, pp. 423--432, 2022, doi:\allowbreak 10.1097/\allowbreak RLI.0000000000000854. PMID:35093968.
+\bibitem{pontillo} G. Pontillo, S. Cocozza, M. Di Stasi et al., "A combined radiomics and machine learning approach to overcome the clinicoradiologic paradox in multiple sclerosis," AJNR Am. J. Neuroradiol., vol. 42, no. 11, pp. 1927--1933, 2021, doi:\allowbreak 10.3174/\allowbreak ajnr.A7274. PMID:34531195.
+\bibitem{denissen} C. Marzi, A. d'Ambrosio, S. Diciotti et al., "Prediction of the information processing speed performance in multiple sclerosis using a machine learning approach in a large multicenter magnetic resonance imaging data set," Hum. Brain Mapp., vol. 44, no. 1, pp. 186--202, 2023, doi:\allowbreak 10.1002/\allowbreak hbm.26106. PMID:36255155.
+\bibitem{poretto} V. Poretto, W. Endrizzi, M. Betti et al., "Machine learning analysis applied to prediction of early progression independent of relapse activity in multiple sclerosis patients," Eur. J. Neurol., vol. 32, no. 12, art. e70417, 2025, doi:\allowbreak 10.1111/\allowbreak ene.70417. PMID:41312659.
+\bibitem{cagol} A. Cagol, P. Benkert, S. Schaedelin et al., "Assessing the relative importance of imaging and serum biomarkers in capturing disability, cognitive impairment, and clinical progression in multiple sclerosis," Adv. Sci., vol. 13, no. 10, art. e12946, 2026, doi:\allowbreak 10.1002/\allowbreak advs.202512946. PMID:41527428.
+\bibitem{houshi} S. Houshi et al., "AI-powered disease progression prediction in multiple sclerosis: a systematic review and meta-analysis," Neurol. Res., vol. 48, pp. 419--433, 2026, doi:\allowbreak 10.1080/\allowbreak 01616412.2025.2532038. PMID:40650946.
+\bibitem{eshaghi} A. Eshaghi, A. L. Young, P. A. Wijeratne et al., "Identifying multiple sclerosis subtypes using unsupervised machine learning and MRI data," Nat. Commun., vol. 12, art. 2078, 2021, doi:\allowbreak 10.1038/\allowbreak s41467-021-22265-2. PMID:33824310.
+\bibitem{progression_reclass} H. Ganjgahi, D. A. Häring, P. Aarden et al., "AI-driven reclassification of multiple sclerosis progression," Nat. Med., vol. 31, pp. 3414--3424, 2025, doi:\allowbreak 10.1038/\allowbreak s41591-025-03901-6.
+\bibitem{federated_ms} D. Liu, M. Cabezas, D. Wang et al., "Multiple sclerosis lesion segmentation: Revisiting weighting mechanisms for federated learning," Front. Neurosci., vol. 17, art. 1167612, 2023, doi:\allowbreak 10.3389/\allowbreak fnins.2023.1167612. PMID:37274196.
+\bibitem{federated_ms2} L. Bai, D. Wang, H. Wang et al., "Improving multiple sclerosis lesion segmentation across clinical sites: A federated learning approach with noise-resilient training," Artif. Intell. Med., vol. 152, art. 102872, 2024, doi:\allowbreak 10.1016/\allowbreak j.artmed.2024.102872. PMID:38701636.
+\bibitem{gender_bias} A. J. Larrazabal, N. Nieto, V. Peterson, D. H. Milone, and E. Ferrante, "Gender imbalance in medical imaging datasets produces biased classifiers for computer-aided diagnosis," Proc. Natl. Acad. Sci. USA, vol. 117, pp. 12592--12594, 2020, doi:\allowbreak 10.1073/\allowbreak pnas.1919012117.
+\bibitem{salem} M. Salem, S. Valverde, M. Cabezas et al., "A fully convolutional neural network for new T2-w lesion detection in multiple sclerosis," NeuroImage Clin., vol. 25, art. 102149, 2020, doi:\allowbreak 10.1016/\allowbreak j.nicl.2019.102149.
+\bibitem{mastilovic2025} M. Mastilović et al., "Evaluation of two AI techniques for the detection of new T2/\allowbreak FLAIR lesions in the follow-up of multiple sclerosis patients," Front. Neurol., vol. 16, art. 1678073, 2025, doi:\allowbreak 10.3389/\allowbreak fneur.2025.1678073. PMID:41132873.
+\bibitem{fda_pixyl} U.S. Food and Drug Administration, "Pixyl.Neuro, 510(k) premarket notification K213253," decision: substantially equivalent, Jun. 30, 2023. [Online]. Available: https:/\allowbreak /\allowbreak \allowbreak www.accessdata.fda.gov/\allowbreak scripts/\allowbreak cdrh/\allowbreak cfdocs/\allowbreak cfpmn/\allowbreak pmn.cfm?ID=K213253. Accessed: Aug. 29, 2026.
+\bibitem{fda_icobrain} U.S. Food and Drug Administration, "Icobrain, 510(k) premarket notification K192130," decision: substantially equivalent, Dec. 13, 2019. [Online]. Available: https:/\allowbreak /\allowbreak \allowbreak www.accessdata.fda.gov/\allowbreak scripts/\allowbreak cdrh/\allowbreak cfdocs/\allowbreak cfpmn/\allowbreak pmn.cfm?ID=K192130. Accessed: Aug. 29, 2026.
+\bibitem{fda_neuroquant} U.S. Food and Drug Administration, "NeuroQuant, 510(k) premarket notification K241098," decision: substantially equivalent, Aug. 22, 2024. [Online]. Available: https:/\allowbreak /\allowbreak \allowbreak www.accessdata.fda.gov/\allowbreak scripts/\allowbreak cdrh/\allowbreak cfdocs/\allowbreak cfpmn/\allowbreak pmn.cfm?ID=K241098. Accessed: Aug. 29, 2026.
+\bibitem{nice_mib291} National Institute for Health and Care Excellence, "icobrain ms for active relapsing--remitting multiple sclerosis," Medtech Innovation Briefing MIB291, Mar. 29, 2022. [Online]. Available: https:/\allowbreak /\allowbreak \allowbreak www.nice.org.uk/\allowbreak advice/\allowbreak mib291. Accessed: Aug. 29, 2026.
+\bibitem{radiology_workflow} A. S. Tejani, T. S. Cook, M. Hussain, T. Sippel Schmidt, and K. P. O'Donnell, "Integrating and adopting AI in the radiology workflow: A primer for standards and Integrating the Healthcare Enterprise (IHE) profiles," Radiology, vol. 311, no. 3, art. e232653, 2024, doi:\allowbreak 10.1148/\allowbreak radiol.232653. PMID:38888474.
+\bibitem{imdrf_samd} International Medical Device Regulators Forum, "Software as a Medical Device (SaMD): Clinical evaluation," IMDRF/\allowbreak SaMD WG/\allowbreak N41FINAL:2017, Sep. 21, 2017. [Online]. Available: https:/\allowbreak /\allowbreak \allowbreak www.imdrf.org/\allowbreak documents/\allowbreak software-medical-device-samd-clinical-evaluation. Accessed: Aug. 29, 2026.
+\bibitem{imdrf_gmlp} International Medical Device Regulators Forum, "Good machine learning practice for medical device development: Guiding principles," IMDRF/\allowbreak AIML WG/\allowbreak N88 FINAL:2025, Jan. 29, 2025. [Online]. Available: https:/\allowbreak /\allowbreak \allowbreak www.imdrf.org/\allowbreak documents/\allowbreak good-machine-learning-practice-medical-device-development-guiding-principles. Accessed: Aug. 29, 2026.
+\bibitem{cheers_ai} J. Elvidge et al., "Consolidated Health Economic Evaluation Reporting Standards for interventions that use artificial intelligence (CHEERS-AI)," Value Health, vol. 27, no. 9, pp. 1196--1205, 2024, doi:\allowbreak 10.1016/\allowbreak j.jval.2024.05.006.
+\bibitem{sima2021} D. M. Sima, D. Horáková, J. Wuerfel et al., "Health economic impact of software-assisted brain MRI on therapeutic decisions in multiple sclerosis," Brain Sci., vol. 11, art. 1570, 2021, doi:\allowbreak 10.3390/\allowbreak brainsci11121570. PMID:34942872.
+\bibitem{assistms} ISRCTN Registry, "Artificial intelligence-assisted magnetic resonance imaging for quality, efficiency and equity in the NHS care of multiple sclerosis (AssistMS)," ISRCTN99207647, recruiting; no results posted as of Aug. 29, 2026, doi:\allowbreak 10.1186/\allowbreak ISRCTN99207647. [Online]. Available: https:/\allowbreak /\allowbreak \allowbreak www.isrctn.com/\allowbreak ISRCTN99207647. Accessed: Aug. 29, 2026.
+\end{thebibliography}
+
+\end{document}
